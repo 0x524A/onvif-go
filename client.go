@@ -18,7 +18,6 @@ type Client struct {
 	mu         sync.RWMutex
 	
 	// Service endpoints
-	deviceEndpoint  string
 	mediaEndpoint   string
 	ptzEndpoint     string
 	imagingEndpoint string
