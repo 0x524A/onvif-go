@@ -78,7 +78,7 @@ func Discover(ctx context.Context, timeout time.Duration) ([]*Device, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on multicast address: %w", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Set read deadline
 	if err := conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {

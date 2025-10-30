@@ -118,7 +118,7 @@ func connectAndShowInfo() {
 	fmt.Printf("🔧 Firmware: %s\n", info.FirmwareVersion)
 
 	// Initialize and get profiles
-	client.Initialize(ctx)
+	_ = client.Initialize(ctx) // Ignore initialization errors, we'll catch them on GetProfiles
 	profiles, err := client.GetProfiles(ctx)
 	if err == nil && len(profiles) > 0 {
 		fmt.Printf("📺 %d profile(s) available\n", len(profiles))
@@ -161,7 +161,7 @@ func ptzDemo() {
 	}
 
 	ctx := context.Background()
-	client.Initialize(ctx)
+	_ = client.Initialize(ctx) // Ignore initialization errors, we'll catch them on GetProfiles
 
 	profiles, err := client.GetProfiles(ctx)
 	if err != nil || len(profiles) == 0 {
@@ -223,7 +223,7 @@ func ptzDemo() {
 		}
 		fmt.Println("✅ Moving for 2 seconds...")
 		time.Sleep(2 * time.Second)
-		client.Stop(ctx, profileToken, true, false)
+		_ = client.Stop(ctx, profileToken, true, false) // Stop PTZ movement
 	} else if position != nil {
 		err = client.AbsoluteMove(ctx, profileToken, position, nil)
 		if err != nil {
@@ -266,7 +266,7 @@ func getStreamURLs() {
 	}
 
 	ctx := context.Background()
-	client.Initialize(ctx)
+	_ = client.Initialize(ctx) // Ignore initialization errors, we'll catch them on GetProfiles
 
 	profiles, err := client.GetProfiles(ctx)
 	if err != nil {

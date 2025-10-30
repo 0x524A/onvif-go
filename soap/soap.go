@@ -125,7 +125,7 @@ func (c *Client) Call(ctx context.Context, endpoint string, action string, reque
 	if err != nil {
 		return fmt.Errorf("failed to send HTTP request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read response body
 	respBody, err := io.ReadAll(resp.Body)
@@ -171,7 +171,7 @@ func (c *Client) Call(ctx context.Context, endpoint string, action string, reque
 func (c *Client) createSecurityHeader() *Security {
 	// Generate nonce
 	nonceBytes := make([]byte, 16)
-	rand.Read(nonceBytes)
+	_, _ = rand.Read(nonceBytes) // rand.Read always returns len(nonceBytes), nil
 	nonce := base64.StdEncoding.EncodeToString(nonceBytes)
 
 	// Get current timestamp

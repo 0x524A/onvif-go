@@ -56,7 +56,7 @@ func (m *MockONVIFServer) handleRequest(w http.ResponseWriter, r *http.Request) 
 	// Read request body
 	body := make([]byte, 0)
 	if r.Body != nil {
-		defer r.Body.Close()
+		defer func() { _ = r.Body.Close() }()
 		buf := make([]byte, 1024)
 		for {
 			n, err := r.Body.Read(buf)
@@ -99,7 +99,7 @@ func (m *MockONVIFServer) handleRequest(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/soap+xml")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(response))
+	_, _ = w.Write([]byte(response)) // Writing to ResponseWriter; error is handled by http package
 }
 
 func (m *MockONVIFServer) setupDefaultResponses() {
