@@ -36,14 +36,16 @@ func main() {
 		case "1":
 			cli.discoverCameras()
 		case "2":
-			cli.connectToCamera()
+			cli.listNetworkInterfaces()
 		case "3":
-			cli.deviceOperations()
+			cli.connectToCamera()
 		case "4":
-			cli.mediaOperations()
+			cli.deviceOperations()
 		case "5":
-			cli.ptzOperations()
+			cli.mediaOperations()
 		case "6":
+			cli.ptzOperations()
+		case "7":
 			cli.imagingOperations()
 		case "0", "q", "quit", "exit":
 			fmt.Println("Goodbye! 👋")
@@ -58,14 +60,15 @@ func main() {
 func (c *CLI) showMainMenu() {
 	fmt.Println("📋 Main Menu:")
 	fmt.Println("  1. Discover Cameras on Network")
-	fmt.Println("  2. Connect to Camera")
+	fmt.Println("  2. List Network Interfaces")
+	fmt.Println("  3. Connect to Camera")
 	if c.client != nil {
-		fmt.Println("  3. Device Operations")
-		fmt.Println("  4. Media Operations")
-		fmt.Println("  5. PTZ Operations")
-		fmt.Println("  6. Imaging Operations")
+		fmt.Println("  4. Device Operations")
+		fmt.Println("  5. Media Operations")
+		fmt.Println("  6. PTZ Operations")
+		fmt.Println("  7. Imaging Operations")
 	} else {
-		fmt.Println("  3-6. (Connect to camera first)")
+		fmt.Println("  4-7. (Connect to camera first)")
 	}
 	fmt.Println("  0. Exit")
 	fmt.Println()
@@ -87,14 +90,99 @@ func (c *CLI) readInputWithDefault(prompt, defaultValue string) string {
 	return input
 }
 
+func (c *CLI) listNetworkInterfaces() {
+	fmt.Println("🌐 Available Network Interfaces")
+	fmt.Println("================================")
+
+	interfaces, err := discovery.ListNetworkInterfaces()
+	if err != nil {
+		fmt.Printf("❌ Error listing interfaces: %v\n", err)
+		return
+	}
+
+	if len(interfaces) == 0 {
+		fmt.Println("❌ No network interfaces found")
+		return
+	}
+
+	fmt.Printf("✅ Found %d interface(s):\n\n", len(interfaces))
+
+	for _, iface := range interfaces {
+		upStr := "⬆️  Up"
+		if !iface.Up {
+			upStr = "⬇️  Down"
+		}
+
+		multicastStr := "✓"
+		if !iface.Multicast {
+			multicastStr = "✗"
+		}
+
+		fmt.Printf("📡 %s (%s, Multicast: %s)\n", iface.Name, upStr, multicastStr)
+
+		if len(iface.Addresses) == 0 {
+			fmt.Println("   (No addresses assigned)")
+		} else {
+			for _, addr := range iface.Addresses {
+				fmt.Printf("   └─ %s\n", addr)
+			}
+		}
+		fmt.Println()
+	}
+
+	fmt.Println("💡 Use interface name or IP address when discovering cameras")
+	fmt.Println("   Example: eth0 or 192.168.1.100")
+}
+
+
 func (c *CLI) discoverCameras() {
 	fmt.Println("🔍 Discovering ONVIF cameras...")
 	fmt.Println("This may take a few seconds...")
 
+	// Ask user if they want to select a specific network interface
+	useSpecificInterface := c.readInput("Use specific network interface? (y/n) [n]: ")
+	useSpecificInterface = strings.ToLower(useSpecificInterface)
+	
+	var opts *discovery.DiscoverOptions
+	if useSpecificInterface == "y" || useSpecificInterface == "yes" {
+		fmt.Println("\nAvailable network interfaces:")
+		interfaces, err := discovery.ListNetworkInterfaces()
+		if err != nil {
+			fmt.Printf("❌ Error listing interfaces: %v\n", err)
+			return
+		}
+
+		for i, iface := range interfaces {
+			fmt.Printf("  %d. %s\n", i+1, iface.Name)
+			for _, addr := range iface.Addresses {
+				fmt.Printf("     └─ %s\n", addr)
+			}
+			multicastStr := "No"
+			if iface.Multicast {
+				multicastStr = "Yes"
+			}
+			fmt.Printf("     (Up: %v, Multicast: %s)\n", iface.Up, multicastStr)
+		}
+
+		ifaceInput := c.readInput("\nEnter interface name or IP address: ")
+		ifaceInput = strings.TrimSpace(ifaceInput)
+		
+		if ifaceInput != "" {
+			opts = &discovery.DiscoverOptions{
+				NetworkInterface: ifaceInput,
+			}
+			fmt.Printf("🎯 Using interface: %s\n\n", ifaceInput)
+		}
+	}
+
+	if opts == nil {
+		opts = &discovery.DiscoverOptions{}
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	devices, err := discovery.Discover(ctx, 5*time.Second)
+	devices, err := discovery.DiscoverWithOptions(ctx, 5*time.Second, opts)
 	if err != nil {
 		fmt.Printf("❌ Discovery failed: %v\n", err)
 		return
