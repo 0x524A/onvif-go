@@ -95,7 +95,7 @@ The server will start on `http://0.0.0.0:8080` with:
   -password string
         Authentication password (default "admin")
   -manufacturer string
-        Device manufacturer (default "go-onvif")
+        Device manufacturer (default "onvif-go")
   -model string
         Device model (default "Virtual Multi-Lens Camera")
   -firmware string
