@@ -89,19 +89,34 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
           PLATFORM="${{ matrix.goos }}-${{ matrix.goarch }}"
-          ARCHIVE_NAME="go-onvif-${VERSION}-${PLATFORM}"
+          ARCHIVE_NAME="onvif-go-${VERSION}-${PLATFORM}"
           
-          mkdir -p releases
+          mkdir -p releases staging
           
+          # Copy binaries with clean names (without platform suffix)
           if [ "${{ matrix.goos }}" = "windows" ]; then
-            # Create ZIP for Windows
-            cd dist
-            zip -j "../releases/${ARCHIVE_NAME}.zip" *-${{ matrix.goos }}-${{ matrix.goarch }}.exe ../README.md ../LICENSE
+            cp dist/onvif-cli-${{ matrix.goos }}-${{ matrix.goarch }}.exe staging/onvif-cli.exe
+            cp dist/onvif-quick-${{ matrix.goos }}-${{ matrix.goarch }}.exe staging/onvif-quick.exe
+            cp dist/onvif-server-${{ matrix.goos }}-${{ matrix.goarch }}.exe staging/onvif-server.exe
+            cp dist/onvif-diagnostics-${{ matrix.goos }}-${{ matrix.goarch }}.exe staging/onvif-diagnostics.exe
+          else
+            cp dist/onvif-cli-${{ matrix.goos }}-${{ matrix.goarch }} staging/onvif-cli
+            cp dist/onvif-quick-${{ matrix.goos }}-${{ matrix.goarch }} staging/onvif-quick
+            cp dist/onvif-server-${{ matrix.goos }}-${{ matrix.goarch }} staging/onvif-server
+            cp dist/onvif-diagnostics-${{ matrix.goos }}-${{ matrix.goarch }} staging/onvif-diagnostics
+          fi
+          
+          # Copy documentation
+          cp README.md LICENSE staging/
+          
+          # Create archive from staging directory
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            cd staging
+            zip -r "../releases/${ARCHIVE_NAME}.zip" .
             cd ..
           else
-            # Create tar.gz for Unix-like systems
-            cd dist
-            tar czf "../releases/${ARCHIVE_NAME}.tar.gz" *-${{ matrix.goos }}-${{ matrix.goarch }} -C .. README.md LICENSE
+            cd staging
+            tar czf "../releases/${ARCHIVE_NAME}.tar.gz" .
             cd ..
           fi
 
