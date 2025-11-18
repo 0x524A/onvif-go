@@ -3,6 +3,7 @@ package onvif
 import (
 	"context"
 	"crypto/md5"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -45,6 +46,19 @@ func WithHTTPClient(httpClient *http.Client) ClientOption {
 	}
 }
 
+// WithInsecureSkipVerify disables TLS certificate verification
+// WARNING: Only use this for testing or with trusted cameras on private networks
+func WithInsecureSkipVerify() ClientOption {
+	return func(c *Client) {
+		if transport, ok := c.httpClient.Transport.(*http.Transport); ok {
+			if transport.TLSClientConfig == nil {
+				transport.TLSClientConfig = &tls.Config{}
+			}
+			transport.TLSClientConfig.InsecureSkipVerify = true
+		}
+	}
+}
+
 // WithCredentials sets the authentication credentials
 func WithCredentials(username, password string) ClientOption {
 	return func(c *Client) {
@@ -73,6 +87,11 @@ func NewClient(endpoint string, opts ...ClientOption) (*Client, error) {
 				MaxIdleConns:        10,
 				MaxIdleConnsPerHost: 5,
 				IdleConnTimeout:     90 * time.Second,
+			},
+			// Don't follow redirects automatically
+			// This prevents http:// from being silently upgraded to https://
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
 			},
 		},
 	}

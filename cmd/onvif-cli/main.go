@@ -282,13 +282,26 @@ func (c *CLI) connectToDiscoveredCamera(device *discovery.Device) {
 	endpoint := device.GetDeviceEndpoint()
 	
 	fmt.Printf("Connecting to: %s\n", endpoint)
+	
+	// Warn if using HTTPS
+	if strings.HasPrefix(endpoint, "https://") {
+		fmt.Println("⚠️  HTTPS endpoint detected - you may need to skip TLS verification for self-signed certificates")
+	}
+	
 	username := c.readInputWithDefault("Username", "admin")
 	
 	fmt.Print("Password: ")
 	password, _ := c.reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 
-	c.createClient(endpoint, username, password)
+	// Ask about TLS verification only for HTTPS
+	insecure := false
+	if strings.HasPrefix(endpoint, "https://") {
+		skipTLS := c.readInputWithDefault("Skip TLS certificate verification? (y/N)", "N")
+		insecure = strings.ToLower(skipTLS) == "y" || strings.ToLower(skipTLS) == "yes"
+	}
+
+	c.createClient(endpoint, username, password, insecure)
 }
 
 func (c *CLI) connectToCamera() {
@@ -296,23 +309,42 @@ func (c *CLI) connectToCamera() {
 	fmt.Println("===================")
 
 	endpoint := c.readInputWithDefault("Camera endpoint (http://ip:port/onvif/device_service)", "http://192.168.1.100/onvif/device_service")
+	
+	// Warn if using HTTPS
+	if strings.HasPrefix(endpoint, "https://") {
+		fmt.Println("⚠️  HTTPS endpoint detected - you may need to skip TLS verification for self-signed certificates")
+	}
+	
 	username := c.readInputWithDefault("Username", "admin")
 	
 	fmt.Print("Password: ")
 	password, _ := c.reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 
-	c.createClient(endpoint, username, password)
+	// Ask about TLS verification only for HTTPS
+	insecure := false
+	if strings.HasPrefix(endpoint, "https://") {
+		skipTLS := c.readInputWithDefault("Skip TLS certificate verification? (y/N)", "N")
+		insecure = strings.ToLower(skipTLS) == "y" || strings.ToLower(skipTLS) == "yes"
+	}
+
+	c.createClient(endpoint, username, password, insecure)
 }
 
-func (c *CLI) createClient(endpoint, username, password string) {
+func (c *CLI) createClient(endpoint, username, password string, insecure bool) {
 	fmt.Println("⏳ Connecting...")
 
-	client, err := onvif.NewClient(
-		endpoint,
+	opts := []onvif.ClientOption{
 		onvif.WithCredentials(username, password),
-		onvif.WithTimeout(30*time.Second),
-	)
+		onvif.WithTimeout(30 * time.Second),
+	}
+
+	if insecure {
+		fmt.Println("⚠️  TLS certificate verification disabled")
+		opts = append(opts, onvif.WithInsecureSkipVerify())
+	}
+
+	client, err := onvif.NewClient(endpoint, opts...)
 	if err != nil {
 		fmt.Printf("❌ Failed to create client: %v\n", err)
 		return
@@ -328,6 +360,9 @@ func (c *CLI) createClient(endpoint, username, password string) {
 		fmt.Println("   - Endpoint URL is correct")
 		fmt.Println("   - Username and password are correct")
 		fmt.Println("   - Camera is accessible from this network")
+		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "certificate") || strings.Contains(err.Error(), "x509") {
+			fmt.Println("   - For HTTPS cameras with self-signed certificates, answer 'y' to skip TLS verification")
+		}
 		return
 	}
 
@@ -543,25 +578,33 @@ func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 	if err == nil && streamInfo != nil {
 		details["reachable"] = streamInfo.IsReachable()
 
-		if streamInfo.IsDescribeSucceeded() {
+		if streamInfo.IsDescribeSucceeded() && streamInfo.HasVideo() {
 			// Extract codec information from first video media
 			if firstVideo := streamInfo.GetFirstVideoMedia(); firstVideo != nil {
+				// Get codec format (H264, H265, MJPEG, etc.)
 				details["codec"] = firstVideo.Format
-			}
-
-			// Extract resolution
-			resolutions := streamInfo.GetVideoResolutionStrings()
-			if len(resolutions) > 0 {
-				details["resolution"] = resolutions[0]
-			}
-
-			// Try to extract framerate (typical RTSP codecs run at standard framerates)
-			if firstVideo := streamInfo.GetFirstVideoMedia(); firstVideo != nil {
+				
+				// Extract resolution directly from the video media
+				if firstVideo.Resolution != nil {
+					details["resolution"] = fmt.Sprintf("%dx%d", 
+						firstVideo.Resolution.Width, 
+						firstVideo.Resolution.Height)
+				} else {
+					// Fallback to resolution strings
+					resolutions := streamInfo.GetVideoResolutionStrings()
+					if len(resolutions) > 0 {
+						details["resolution"] = resolutions[0]
+					}
+				}
+				
+				// Try to determine framerate from clock rate
 				if firstVideo.ClockRate != nil && *firstVideo.ClockRate > 0 {
-					// H.264/H.265 typically use 90kHz clock with 1 frame per 3000-3600 samples
-					// This is a heuristic; actual framerate may vary
+					// For H.264/H.265, clock rate is typically 90kHz
+					// Actual framerate depends on RTP timestamps, but we can estimate
 					if firstVideo.Format == "H264" || firstVideo.Format == "H265" {
-						details["framerate"] = "30 fps"
+						details["framerate"] = "30 fps" // Common default
+					} else if firstVideo.Format == "MJPEG" {
+						details["framerate"] = "variable"
 					}
 				}
 			}
@@ -642,6 +685,13 @@ func (c *CLI) getStreamURIs(ctx context.Context) {
 			fmt.Printf("   Stream URI: ❌ Error - %v\n", err)
 		} else {
 			fmt.Printf("   Stream URI: %s\n", streamURI.URI)
+			
+			// Warn if camera returns HTTPS when we connected via HTTP
+			if strings.HasPrefix(c.client.Endpoint(), "http://") && strings.HasPrefix(streamURI.URI, "https://") {
+				fmt.Printf("   ⚠️  WARNING: Camera returned HTTPS URL but you connected via HTTP\n")
+				fmt.Printf("   💡 Stream may fail due to TLS certificate issues\n")
+				fmt.Printf("   💡 Consider reconnecting with https:// endpoint and skip TLS verification\n")
+			}
 
 			// Inspect RTSP stream details
 			fmt.Print("   ⏳ Inspecting stream details...")
@@ -701,6 +751,14 @@ func (c *CLI) getSnapshotURIs(ctx context.Context) {
 			fmt.Printf("   Snapshot URI: ❌ Error - %v\n", err)
 		} else {
 			fmt.Printf("   Snapshot URI: %s\n", snapshotURI.URI)
+			
+			// Warn if camera returns HTTPS when we connected via HTTP
+			if strings.HasPrefix(c.client.Endpoint(), "http://") && strings.HasPrefix(snapshotURI.URI, "https://") {
+				fmt.Printf("   ⚠️  WARNING: Camera returned HTTPS URL but you connected via HTTP\n")
+				fmt.Printf("   💡 Snapshot may fail due to TLS certificate issues\n")
+				fmt.Printf("   💡 Consider reconnecting with https:// endpoint and skip TLS verification\n")
+			}
+			
 			fmt.Printf("   🌐 Open this URL in a browser to see the snapshot\n")
 		}
 		fmt.Println()
