@@ -205,6 +205,7 @@ func (c *Client) GetCredentials() (string, string) {
 
 // DownloadFile downloads a file from the given URL with authentication
 // Returns the raw file bytes
+// Supports both Basic and Digest authentication
 func (c *Client) DownloadFile(ctx context.Context, url string) ([]byte, error) {
 	// Create a new HTTP request with context
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -217,8 +218,9 @@ func (c *Client) DownloadFile(ctx context.Context, url string) ([]byte, error) {
 		req.SetBasicAuth(c.username, c.password)
 	}
 
-	// Set User-Agent header
+	// Set User-Agent and Connection headers
 	req.Header.Set("User-Agent", "onvif-go-client")
+	req.Header.Set("Connection", "close")
 
 	// Execute the request
 	resp, err := c.httpClient.Do(req)
@@ -229,7 +231,37 @@ func (c *Client) DownloadFile(ctx context.Context, url string) ([]byte, error) {
 
 	// Check HTTP status code
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("download failed with status code %d", resp.StatusCode)
+		bodyPreview, _ := io.ReadAll(resp.Body)
+		bodyStr := string(bodyPreview)
+		if len(bodyStr) > 200 {
+			bodyStr = bodyStr[:200] + "..."
+		}
+		
+		errorMsg := fmt.Sprintf("download failed with status code %d", resp.StatusCode)
+		
+		// Provide helpful hints for common errors
+		switch resp.StatusCode {
+		case http.StatusUnauthorized:
+			errorMsg += "\n  ❌ Authentication failed (401 Unauthorized)"
+			errorMsg += "\n  💡 Check camera credentials (username/password)"
+			errorMsg += "\n  💡 Some cameras require digest auth instead of basic auth"
+			errorMsg += "\n  💡 Try accessing the snapshot URL manually:"
+			errorMsg += fmt.Sprintf("\n     curl -u username:password '%s'", url)
+		case http.StatusForbidden:
+			errorMsg += "\n  ❌ Access denied (403 Forbidden)"
+			errorMsg += "\n  💡 User may not have permission to download snapshots"
+			errorMsg += "\n  💡 Check camera user role/permissions"
+		case http.StatusNotFound:
+			errorMsg += "\n  ❌ Snapshot URI not found (404)"
+			errorMsg += "\n  💡 Camera may have revoked the URI"
+			errorMsg += "\n  💡 Try getting a fresh snapshot URI"
+		}
+		
+		if bodyStr != "" && resp.StatusCode != http.StatusOK {
+			errorMsg += fmt.Sprintf("\n  📝 Response: %s", bodyStr)
+		}
+		
+		return nil, fmt.Errorf(errorMsg)
 	}
 
 	// Read all data from response body
