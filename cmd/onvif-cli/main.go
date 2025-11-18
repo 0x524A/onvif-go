@@ -567,7 +567,6 @@ func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 		"reachable":  false,
 		"codec":      "unknown",
 		"resolution": "unknown",
-		"framerate":  "unknown",
 	}
 
 	// Use rtspeek library for detailed stream inspection
@@ -594,17 +593,6 @@ func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 					resolutions := streamInfo.GetVideoResolutionStrings()
 					if len(resolutions) > 0 {
 						details["resolution"] = resolutions[0]
-					}
-				}
-				
-				// Try to determine framerate from clock rate
-				if firstVideo.ClockRate != nil && *firstVideo.ClockRate > 0 {
-					// For H.264/H.265, clock rate is typically 90kHz
-					// Actual framerate depends on RTP timestamps, but we can estimate
-					if firstVideo.Format == "H264" || firstVideo.Format == "H265" {
-						details["framerate"] = "30 fps" // Common default
-					} else if firstVideo.Format == "MJPEG" {
-						details["framerate"] = "variable"
 					}
 				}
 			}
@@ -712,10 +700,6 @@ func (c *CLI) getStreamURIs(ctx context.Context) {
 
 			if resolution, ok := details["resolution"].(string); ok && resolution != "unknown" {
 				fmt.Printf("      Resolution: %s\n", resolution)
-			}
-
-			if framerate, ok := details["framerate"].(string); ok && framerate != "unknown" {
-				fmt.Printf("      Frame Rate: %s\n", framerate)
 			}
 
 			if port, ok := details["port"].(string); ok {
