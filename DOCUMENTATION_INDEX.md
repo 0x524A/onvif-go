@@ -68,7 +68,7 @@ go test ./discovery -v
 ## 📁 Code Structure
 
 ```
-go-onvif/
+onvif-go/
 ├── cmd/onvif-cli/          Main CLI tool (1,195 lines)
 ├── cmd/onvif-quick/        Quick discovery tool
 ├── discovery/              Discovery library + tests
