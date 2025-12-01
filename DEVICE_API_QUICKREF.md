@@ -404,6 +404,49 @@ client.DeleteUsers(ctx, []string{"user1", "user2"})
 client.AddScopes(ctx, []string{"scope1", "scope2", "scope3"})
 ```
 
+## Geo Location & Discovery
+
+```go
+// Get device location (GPS coordinates)
+locations, _ := client.GetGeoLocation(ctx)
+for _, loc := range locations {
+    fmt.Printf("%s: (%.4f, %.4f) elevation %.1fm\n",
+        loc.Entity, loc.Lat, loc.Lon, loc.Elevation)
+}
+
+// Set location
+client.SetGeoLocation(ctx, []onvif.LocationEntity{
+    {
+        Entity:    "Main Building",
+        Token:     "loc1",
+        Fixed:     true,
+        Lon:       -122.4194,
+        Lat:       37.7749,
+        Elevation: 10.5,
+    },
+})
+
+// Get WS-Discovery multicast addresses
+dpAddresses, _ := client.GetDPAddresses(ctx)
+for _, addr := range dpAddresses {
+    fmt.Printf("%s: %s / %s\n", addr.Type, addr.IPv4Address, addr.IPv6Address)
+}
+
+// Set discovery addresses (empty list restores defaults)
+client.SetDPAddresses(ctx, []onvif.NetworkHost{
+    {Type: "IPv4", IPv4Address: "239.255.255.250"},
+    {Type: "IPv6", IPv6Address: "ff02::c"},
+})
+
+// Get device access policy
+policy, _ := client.GetAccessPolicy(ctx)
+if policy.PolicyFile != nil {
+    fmt.Printf("Policy: %d bytes of %s\n",
+        len(policy.PolicyFile.Data),
+        policy.PolicyFile.ContentType)
+}
+```
+
 ## See Also
 
 - [DEVICE_API_STATUS.md](DEVICE_API_STATUS.md) - Complete API implementation status

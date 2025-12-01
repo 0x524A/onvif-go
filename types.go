@@ -1027,8 +1027,24 @@ type UserCredential struct {
 
 // LocationEntity represents geo location
 type LocationEntity struct {
-	// Simplified - full implementation would include lat/long
-	Entity string
+	Entity    string  `xml:"Entity"`
+	Token     string  `xml:"Token"`
+	Fixed     bool    `xml:"Fixed"`
+	Lon       float64 `xml:"Lon,attr"`
+	Lat       float64 `xml:"Lat,attr"`
+	Elevation float64 `xml:"Elevation,attr"`
+}
+
+// GeoLocation represents geographic location coordinates
+type GeoLocation struct {
+	Lon       float64 `xml:"lon,attr,omitempty"`       // Longitude in degrees
+	Lat       float64 `xml:"lat,attr,omitempty"`       // Latitude in degrees
+	Elevation float64 `xml:"elevation,attr,omitempty"` // Elevation in meters
+}
+
+// AccessPolicy represents device access policy configuration
+type AccessPolicy struct {
+	PolicyFile *BinaryData
 }
 
 // PasswordComplexityConfiguration represents password complexity config
