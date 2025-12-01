@@ -147,7 +147,7 @@ jobs:
     name: Code Quality (SonarCloud)
     runs-on: ubuntu-latest
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.SONAR_TOKEN != ''
     
     steps:
     - name: Checkout code
@@ -167,7 +167,7 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         args: >
-          -Dsonar.projectKey=0x524a_go-onvif
+          -Dsonar.projectKey=0x524a_onvif-go
           -Dsonar.organization=0x524a
           -Dsonar.go.coverage.reportPaths=coverage.out
 

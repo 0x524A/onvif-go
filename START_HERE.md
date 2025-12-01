@@ -1,6 +1,6 @@
 # 🎯 START HERE
 
-Welcome to **go-onvif** - A comprehensive Go library and CLI tool for ONVIF camera discovery and control.
+Welcome to **onvif-go** - A comprehensive Go library and CLI tool for ONVIF camera discovery and control.
 
 ## ⚡ Quick Start (2 minutes)
 
