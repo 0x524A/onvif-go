@@ -17,14 +17,14 @@ func newMockDeviceAdditionalServer() *httptest.Server {
 				Content []byte `xml:",innerxml"`
 			} `xml:"Body"`
 		}
-		decoder.Decode(&envelope)
+		_ = decoder.Decode(&envelope)
 		bodyContent := string(envelope.Body.Content)
 
 		w.Header().Set("Content-Type", "application/soap+xml")
 
 		switch {
 		case strings.Contains(bodyContent, "GetGeoLocation"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+			_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:tt="http://www.onvif.org/ver10/schema">
 	<s:Body>
 		<tds:GetGeoLocationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
@@ -38,7 +38,7 @@ func newMockDeviceAdditionalServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "SetGeoLocation"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+			_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:SetGeoLocationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
@@ -46,7 +46,7 @@ func newMockDeviceAdditionalServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "DeleteGeoLocation"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+			_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:DeleteGeoLocationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
@@ -54,7 +54,7 @@ func newMockDeviceAdditionalServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "GetDPAddresses"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:GetDPAddressesResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
@@ -71,7 +71,7 @@ func newMockDeviceAdditionalServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "SetDPAddresses"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:SetDPAddressesResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
@@ -79,7 +79,7 @@ func newMockDeviceAdditionalServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "GetAccessPolicy"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:GetAccessPolicyResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
@@ -92,7 +92,7 @@ func newMockDeviceAdditionalServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "SetAccessPolicy"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:SetAccessPolicyResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
@@ -100,7 +100,7 @@ func newMockDeviceAdditionalServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "GetWsdlUrl"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:GetWsdlUrlResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">

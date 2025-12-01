@@ -17,14 +17,14 @@ func newMockDeviceSecurityServer() *httptest.Server {
 				Content []byte `xml:",innerxml"`
 			} `xml:"Body"`
 		}
-		decoder.Decode(&envelope)
+		_ = decoder.Decode(&envelope)
 		bodyContent := string(envelope.Body.Content)
 
 		w.Header().Set("Content-Type", "application/soap+xml")
 
 		switch {
 		case strings.Contains(bodyContent, "GetRemoteUser"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:GetRemoteUserResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
@@ -38,7 +38,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "SetRemoteUser"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:SetRemoteUserResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
@@ -46,7 +46,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "GetIPAddressFilter"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:GetIPAddressFilterResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
@@ -64,7 +64,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 		case strings.Contains(bodyContent, "SetIPAddressFilter"), 
 		     strings.Contains(bodyContent, "AddIPAddressFilter"),
 		     strings.Contains(bodyContent, "RemoveIPAddressFilter"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:SetIPAddressFilterResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
@@ -72,7 +72,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "GetZeroConfiguration"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:GetZeroConfigurationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
@@ -86,7 +86,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "SetZeroConfiguration"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:SetZeroConfigurationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
@@ -94,7 +94,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "GetPasswordComplexityConfiguration"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:GetPasswordComplexityConfigurationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
@@ -109,7 +109,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "SetPasswordComplexityConfiguration"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:SetPasswordComplexityConfigurationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
@@ -117,7 +117,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "GetPasswordHistoryConfiguration"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:GetPasswordHistoryConfigurationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
@@ -128,7 +128,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "SetPasswordHistoryConfiguration"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:SetPasswordHistoryConfigurationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
@@ -136,7 +136,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "GetAuthFailureWarningConfiguration"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:GetAuthFailureWarningConfigurationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
@@ -148,7 +148,7 @@ func newMockDeviceSecurityServer() *httptest.Server {
 </s:Envelope>`))
 
 		case strings.Contains(bodyContent, "SetAuthFailureWarningConfiguration"):
-			w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
 	<s:Body>
 		<tds:SetAuthFailureWarningConfigurationResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
