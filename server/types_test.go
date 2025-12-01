@@ -640,12 +640,12 @@ func TestToONVIFProfile(t *testing.T) {
 	profile := &ProfileConfig{
 		Token: "profile_1",
 		Name: "HD Profile",
-		VideoSource: &VideoSourceConfig{
+		VideoSource: VideoSourceConfig{
 			Token: "source_1",
 			Framerate: 30,
 			Resolution: Resolution{Width: 1920, Height: 1080},
 		},
-		VideoEncoder: &VideoEncoderConfig{
+		VideoEncoder: VideoEncoderConfig{
 			Encoding: "H264",
 			Bitrate: 4096,
 			Framerate: 30,

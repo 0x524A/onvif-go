@@ -283,6 +283,10 @@ func (s *Server) HandleSetImagingSettings(body interface{}) (interface{}, error)
 
 	// Update settings
 	settings := req.ImagingSettings
+	if settings == nil {
+		// Return success if no settings to update
+		return &SetImagingSettingsResponse{}, nil
+	}
 	if settings.Brightness != nil {
 		state.Brightness = *settings.Brightness
 	}
