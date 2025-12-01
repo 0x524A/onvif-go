@@ -26,7 +26,7 @@ jobs:
         go-version: '1.23'
     
     - name: Cache Go modules
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      uses: actions/cache@1bd1e32a3bdc2474371e44e3f675e0e8cb6f3eff # v4.2.0
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -66,7 +66,7 @@ jobs:
         go-version: '1.23'
     
     - name: Cache Go modules
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      uses: actions/cache@1bd1e32a3bdc2474371e44e3f675e0e8cb6f3eff # v4.2.0
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-1.23-${{ hashFiles('**/go.sum') }}
@@ -127,7 +127,7 @@ jobs:
         go-version: ${{ matrix.go-version }}
     
     - name: Cache Go modules
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      uses: actions/cache@1bd1e32a3bdc2474371e44e3f675e0e8cb6f3eff # v4.2.0
       with:
         path: |
           ~/.cache/go-build
@@ -187,7 +187,7 @@ jobs:
         go-version: '1.23'
     
     - name: Cache Go modules
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      uses: actions/cache@1bd1e32a3bdc2474371e44e3f675e0e8cb6f3eff # v4.2.0
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-1.23-${{ hashFiles('**/go.sum') }}
