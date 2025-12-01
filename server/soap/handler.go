@@ -204,9 +204,13 @@ func (h *Handler) sendFault(w http.ResponseWriter, code, reason, detail string) 
 	// Add XML declaration
 	xmlBody := append([]byte(xml.Header), body...)
 
-	// Send fault response
+	// Send fault response - use appropriate status code based on fault code
 	w.Header().Set("Content-Type", "application/soap+xml; charset=utf-8")
-	w.WriteHeader(http.StatusInternalServerError)
+	statusCode := http.StatusInternalServerError
+	if code == "Sender" {
+		statusCode = http.StatusBadRequest
+	}
+	w.WriteHeader(statusCode)
 	_, _ = w.Write(xmlBody)
 }
 
