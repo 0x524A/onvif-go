@@ -1,0 +1,40 @@
+name: Extra Tests
+
+on:
+  workflow_dispatch:  # Manual trigger only
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+
+jobs:
+  # Run tests on other Go versions as manual/scheduled job
+  test-older-versions:
+    name: Test on Go ${{ matrix.go-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        go-version: ['1.20', '1.19']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+    
+    - name: Set up Go
+      uses: actions/setup-go@a4a2eec1d0ddf3f5835416e10cb208206f91ce91 # v5.0.0
+      with:
+        go-version: ${{ matrix.go-version }}
+    
+    - name: Cache Go modules
+      uses: actions/cache@e5f3f4dc664b57a06a2055cfc9b80cf9f20aba75 # v4.0.1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ matrix.go-version }}-
+    
+    - name: Download dependencies
+      run: go mod download
+    
+    - name: Run tests
+      run: go test -v -race ./...

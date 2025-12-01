@@ -391,6 +391,297 @@ func TestGetNetworkInterfaces(t *testing.T) {
 	}
 }
 
+func TestGetServices(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:GetServicesResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
+					<tds:Service>
+						<tds:Namespace>http://www.onvif.org/ver10/device/wsdl</tds:Namespace>
+						<tds:XAddr>http://192.168.1.100/onvif/device_service</tds:XAddr>
+						<tds:Version>
+							<tt:Major>2</tt:Major>
+							<tt:Minor>6</tt:Minor>
+						</tds:Version>
+					</tds:Service>
+				</tds:GetServicesResponse>
+			</s:Body>
+		</s:Envelope>`
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	services, err := client.GetServices(context.Background(), true)
+	if err != nil {
+		t.Fatalf("GetServices() error = %v", err)
+	}
+
+	if len(services) != 1 {
+		t.Errorf("Expected 1 service, got %d", len(services))
+	}
+
+	if services[0].Namespace != "http://www.onvif.org/ver10/device/wsdl" {
+		t.Errorf("Expected device namespace, got %s", services[0].Namespace)
+	}
+}
+
+func TestGetServiceCapabilities(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:GetServiceCapabilitiesResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
+					<tds:Capabilities>
+						<tds:Network IPFilter="true" ZeroConfiguration="true"/>
+						<tds:Security TLS1.2="true"/>
+						<tds:System FirmwareUpgrade="true"/>
+					</tds:Capabilities>
+				</tds:GetServiceCapabilitiesResponse>
+			</s:Body>
+		</s:Envelope>`
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	caps, err := client.GetServiceCapabilities(context.Background())
+	if err != nil {
+		t.Fatalf("GetServiceCapabilities() error = %v", err)
+	}
+
+	if caps.Network == nil || !caps.Network.IPFilter {
+		t.Error("Expected Network.IPFilter to be true")
+	}
+}
+
+func TestGetDiscoveryMode(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:GetDiscoveryModeResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
+					<tds:DiscoveryMode>Discoverable</tds:DiscoveryMode>
+				</tds:GetDiscoveryModeResponse>
+			</s:Body>
+		</s:Envelope>`
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	mode, err := client.GetDiscoveryMode(context.Background())
+	if err != nil {
+		t.Fatalf("GetDiscoveryMode() error = %v", err)
+	}
+
+	if mode != DiscoveryModeDiscoverable {
+		t.Errorf("Expected Discoverable mode, got %s", mode)
+	}
+}
+
+func TestSetDiscoveryMode(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:SetDiscoveryModeResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
+			</s:Body>
+		</s:Envelope>`
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	err = client.SetDiscoveryMode(context.Background(), DiscoveryModeDiscoverable)
+	if err != nil {
+		t.Fatalf("SetDiscoveryMode() error = %v", err)
+	}
+}
+
+func TestGetEndpointReference(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:GetEndpointReferenceResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
+					<tds:GUID>urn:uuid:12345678-1234-1234-1234-123456789abc</tds:GUID>
+				</tds:GetEndpointReferenceResponse>
+			</s:Body>
+		</s:Envelope>`
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	guid, err := client.GetEndpointReference(context.Background())
+	if err != nil {
+		t.Fatalf("GetEndpointReference() error = %v", err)
+	}
+
+	expected := "urn:uuid:12345678-1234-1234-1234-123456789abc"
+	if guid != expected {
+		t.Errorf("Expected GUID %s, got %s", expected, guid)
+	}
+}
+
+func TestGetNetworkProtocols(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:GetNetworkProtocolsResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
+					<tds:NetworkProtocols>
+						<tt:Name>HTTP</tt:Name>
+						<tt:Enabled>true</tt:Enabled>
+						<tt:Port>80</tt:Port>
+					</tds:NetworkProtocols>
+					<tds:NetworkProtocols>
+						<tt:Name>RTSP</tt:Name>
+						<tt:Enabled>true</tt:Enabled>
+						<tt:Port>554</tt:Port>
+					</tds:NetworkProtocols>
+				</tds:GetNetworkProtocolsResponse>
+			</s:Body>
+		</s:Envelope>`
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	protocols, err := client.GetNetworkProtocols(context.Background())
+	if err != nil {
+		t.Fatalf("GetNetworkProtocols() error = %v", err)
+	}
+
+	if len(protocols) != 2 {
+		t.Fatalf("Expected 2 protocols, got %d", len(protocols))
+	}
+
+	if protocols[0].Name != NetworkProtocolHTTP {
+		t.Errorf("Expected HTTP protocol, got %s", protocols[0].Name)
+	}
+}
+
+func TestSetNetworkProtocols(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:SetNetworkProtocolsResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
+			</s:Body>
+		</s:Envelope>`
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	protocols := []*NetworkProtocol{
+		{Name: NetworkProtocolHTTP, Enabled: true, Port: []int{8080}},
+	}
+
+	err = client.SetNetworkProtocols(context.Background(), protocols)
+	if err != nil {
+		t.Fatalf("SetNetworkProtocols() error = %v", err)
+	}
+}
+
+func TestGetNetworkDefaultGateway(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:GetNetworkDefaultGatewayResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl">
+					<tds:NetworkGateway>
+						<tt:IPv4Address>192.168.1.1</tt:IPv4Address>
+					</tds:NetworkGateway>
+				</tds:GetNetworkDefaultGatewayResponse>
+			</s:Body>
+		</s:Envelope>`
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	gateway, err := client.GetNetworkDefaultGateway(context.Background())
+	if err != nil {
+		t.Fatalf("GetNetworkDefaultGateway() error = %v", err)
+	}
+
+	if len(gateway.IPv4Address) != 1 || gateway.IPv4Address[0] != "192.168.1.1" {
+		t.Errorf("Expected gateway 192.168.1.1, got %v", gateway.IPv4Address)
+	}
+}
+
+func TestSetNetworkDefaultGateway(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := `<?xml version="1.0" encoding="UTF-8"?>
+		<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+			<s:Body>
+				<tds:SetNetworkDefaultGatewayResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>
+			</s:Body>
+		</s:Envelope>`
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(response))
+	}))
+	defer server.Close()
+
+	client, err := NewClient(server.URL)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	gateway := &NetworkGateway{
+		IPv4Address: []string{"192.168.1.1"},
+	}
+
+	err = client.SetNetworkDefaultGateway(context.Background(), gateway)
+	if err != nil {
+		t.Fatalf("SetNetworkDefaultGateway() error = %v", err)
+	}
+}
+
 func BenchmarkDeviceGetDeviceInformation(b *testing.B) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := `<?xml version="1.0" encoding="UTF-8"?>

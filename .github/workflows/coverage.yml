@@ -1,0 +1,42 @@
+name: Additional Coverage Reports
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [master, main]
+
+jobs:
+  # Generate additional coverage analysis if CI passed
+  coverage-analysis:
+    name: Coverage Analysis
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+    
+    - name: Download artifacts
+      uses: actions/download-artifact@fb7b1ae3fa6edf41bfe27490ab69d8657bea0656 # v4.1.7
+      with:
+        name: coverage-report
+    
+    - name: Check coverage percentage
+      run: |
+        if [ -f coverage.out ]; then
+          coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Coverage: $coverage%"
+          # Set threshold to 40%
+          if (( $(echo "$coverage < 40" | bc -l) )); then
+            echo "⚠️  Coverage below 40% threshold: $coverage%"
+          else
+            echo "✅ Coverage above threshold: $coverage%"
+          fi
+        fi
+    
+    - name: Upload coverage badge
+      continue-on-error: true
+      run: |
+        # Optional: Update badges or notifications
+        echo "Coverage analysis complete"

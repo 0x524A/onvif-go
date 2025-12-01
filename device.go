@@ -702,3 +702,393 @@ func (c *Client) SetUser(ctx context.Context, user *User) error {
 
 	return nil
 }
+
+// GetServices returns information about services on the device
+func (c *Client) GetServices(ctx context.Context, includeCapability bool) ([]*Service, error) {
+	type GetServices struct {
+		XMLName           xml.Name `xml:"tds:GetServices"`
+		Xmlns             string   `xml:"xmlns:tds,attr"`
+		IncludeCapability bool     `xml:"tds:IncludeCapability"`
+	}
+
+	type GetServicesResponse struct {
+		XMLName xml.Name `xml:"GetServicesResponse"`
+		Service []struct {
+			Namespace    string      `xml:"Namespace"`
+			XAddr        string      `xml:"XAddr"`
+			Capabilities interface{} `xml:"Capabilities"`
+			Version      struct {
+				Major int `xml:"Major"`
+				Minor int `xml:"Minor"`
+			} `xml:"Version"`
+		} `xml:"Service"`
+	}
+
+	req := GetServices{
+		Xmlns:             deviceNamespace,
+		IncludeCapability: includeCapability,
+	}
+
+	var resp GetServicesResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, &resp); err != nil {
+		return nil, fmt.Errorf("GetServices failed: %w", err)
+	}
+
+	services := make([]*Service, len(resp.Service))
+	for i, svc := range resp.Service {
+		services[i] = &Service{
+			Namespace:    svc.Namespace,
+			XAddr:        svc.XAddr,
+			Capabilities: svc.Capabilities,
+			Version: OnvifVersion{
+				Major: svc.Version.Major,
+				Minor: svc.Version.Minor,
+			},
+		}
+	}
+
+	return services, nil
+}
+
+// GetServiceCapabilities returns the capabilities of the device service
+func (c *Client) GetServiceCapabilities(ctx context.Context) (*DeviceServiceCapabilities, error) {
+	type GetServiceCapabilities struct {
+		XMLName xml.Name `xml:"tds:GetServiceCapabilities"`
+		Xmlns   string   `xml:"xmlns:tds,attr"`
+	}
+
+	type GetServiceCapabilitiesResponse struct {
+		XMLName      xml.Name `xml:"GetServiceCapabilitiesResponse"`
+		Capabilities struct {
+			Network struct {
+				IPFilter          bool `xml:"IPFilter,attr"`
+				ZeroConfiguration bool `xml:"ZeroConfiguration,attr"`
+				IPVersion6        bool `xml:"IPVersion6,attr"`
+				DynDNS            bool `xml:"DynDNS,attr"`
+			} `xml:"Network"`
+			Security struct {
+				TLS10                bool `xml:"TLS1.0,attr"`
+				TLS11                bool `xml:"TLS1.1,attr"`
+				TLS12                bool `xml:"TLS1.2,attr"`
+				OnboardKeyGeneration bool `xml:"OnboardKeyGeneration,attr"`
+				AccessPolicyConfig   bool `xml:"AccessPolicyConfig,attr"`
+			} `xml:"Security"`
+			System struct {
+				DiscoveryResolve bool `xml:"DiscoveryResolve,attr"`
+				DiscoveryBye     bool `xml:"DiscoveryBye,attr"`
+				RemoteDiscovery  bool `xml:"RemoteDiscovery,attr"`
+				SystemBackup     bool `xml:"SystemBackup,attr"`
+				SystemLogging    bool `xml:"SystemLogging,attr"`
+				FirmwareUpgrade  bool `xml:"FirmwareUpgrade,attr"`
+			} `xml:"System"`
+		} `xml:"Capabilities"`
+	}
+
+	req := GetServiceCapabilities{
+		Xmlns: deviceNamespace,
+	}
+
+	var resp GetServiceCapabilitiesResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, &resp); err != nil {
+		return nil, fmt.Errorf("GetServiceCapabilities failed: %w", err)
+	}
+
+	return &DeviceServiceCapabilities{
+		Network: &NetworkCapabilities{
+			IPFilter:          resp.Capabilities.Network.IPFilter,
+			ZeroConfiguration: resp.Capabilities.Network.ZeroConfiguration,
+			IPVersion6:        resp.Capabilities.Network.IPVersion6,
+			DynDNS:            resp.Capabilities.Network.DynDNS,
+		},
+		Security: &SecurityCapabilities{
+			TLS11:                resp.Capabilities.Security.TLS11,
+			TLS12:                resp.Capabilities.Security.TLS12,
+			OnboardKeyGeneration: resp.Capabilities.Security.OnboardKeyGeneration,
+			AccessPolicyConfig:   resp.Capabilities.Security.AccessPolicyConfig,
+		},
+		System: &SystemCapabilities{
+			DiscoveryResolve: resp.Capabilities.System.DiscoveryResolve,
+			DiscoveryBye:     resp.Capabilities.System.DiscoveryBye,
+			RemoteDiscovery:  resp.Capabilities.System.RemoteDiscovery,
+			SystemBackup:     resp.Capabilities.System.SystemBackup,
+			SystemLogging:    resp.Capabilities.System.SystemLogging,
+			FirmwareUpgrade:  resp.Capabilities.System.FirmwareUpgrade,
+		},
+	}, nil
+}
+
+// GetDiscoveryMode gets the discovery mode of a device
+func (c *Client) GetDiscoveryMode(ctx context.Context) (DiscoveryMode, error) {
+	type GetDiscoveryMode struct {
+		XMLName xml.Name `xml:"tds:GetDiscoveryMode"`
+		Xmlns   string   `xml:"xmlns:tds,attr"`
+	}
+
+	type GetDiscoveryModeResponse struct {
+		XMLName       xml.Name `xml:"GetDiscoveryModeResponse"`
+		DiscoveryMode string   `xml:"DiscoveryMode"`
+	}
+
+	req := GetDiscoveryMode{
+		Xmlns: deviceNamespace,
+	}
+
+	var resp GetDiscoveryModeResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, &resp); err != nil {
+		return "", fmt.Errorf("GetDiscoveryMode failed: %w", err)
+	}
+
+	return DiscoveryMode(resp.DiscoveryMode), nil
+}
+
+// SetDiscoveryMode sets the discovery mode of a device
+func (c *Client) SetDiscoveryMode(ctx context.Context, mode DiscoveryMode) error {
+	type SetDiscoveryMode struct {
+		XMLName       xml.Name      `xml:"tds:SetDiscoveryMode"`
+		Xmlns         string        `xml:"xmlns:tds,attr"`
+		DiscoveryMode DiscoveryMode `xml:"tds:DiscoveryMode"`
+	}
+
+	req := SetDiscoveryMode{
+		Xmlns:         deviceNamespace,
+		DiscoveryMode: mode,
+	}
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, nil); err != nil {
+		return fmt.Errorf("SetDiscoveryMode failed: %w", err)
+	}
+
+	return nil
+}
+
+// GetRemoteDiscoveryMode gets the remote discovery mode
+func (c *Client) GetRemoteDiscoveryMode(ctx context.Context) (DiscoveryMode, error) {
+	type GetRemoteDiscoveryMode struct {
+		XMLName xml.Name `xml:"tds:GetRemoteDiscoveryMode"`
+		Xmlns   string   `xml:"xmlns:tds,attr"`
+	}
+
+	type GetRemoteDiscoveryModeResponse struct {
+		XMLName             xml.Name `xml:"GetRemoteDiscoveryModeResponse"`
+		RemoteDiscoveryMode string   `xml:"RemoteDiscoveryMode"`
+	}
+
+	req := GetRemoteDiscoveryMode{
+		Xmlns: deviceNamespace,
+	}
+
+	var resp GetRemoteDiscoveryModeResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, &resp); err != nil {
+		return "", fmt.Errorf("GetRemoteDiscoveryMode failed: %w", err)
+	}
+
+	return DiscoveryMode(resp.RemoteDiscoveryMode), nil
+}
+
+// SetRemoteDiscoveryMode sets the remote discovery mode
+func (c *Client) SetRemoteDiscoveryMode(ctx context.Context, mode DiscoveryMode) error {
+	type SetRemoteDiscoveryMode struct {
+		XMLName             xml.Name      `xml:"tds:SetRemoteDiscoveryMode"`
+		Xmlns               string        `xml:"xmlns:tds,attr"`
+		RemoteDiscoveryMode DiscoveryMode `xml:"tds:RemoteDiscoveryMode"`
+	}
+
+	req := SetRemoteDiscoveryMode{
+		Xmlns:               deviceNamespace,
+		RemoteDiscoveryMode: mode,
+	}
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, nil); err != nil {
+		return fmt.Errorf("SetRemoteDiscoveryMode failed: %w", err)
+	}
+
+	return nil
+}
+
+// GetEndpointReference gets the endpoint reference GUID
+func (c *Client) GetEndpointReference(ctx context.Context) (string, error) {
+	type GetEndpointReference struct {
+		XMLName xml.Name `xml:"tds:GetEndpointReference"`
+		Xmlns   string   `xml:"xmlns:tds,attr"`
+	}
+
+	type GetEndpointReferenceResponse struct {
+		XMLName xml.Name `xml:"GetEndpointReferenceResponse"`
+		GUID    string   `xml:"GUID"`
+	}
+
+	req := GetEndpointReference{
+		Xmlns: deviceNamespace,
+	}
+
+	var resp GetEndpointReferenceResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, &resp); err != nil {
+		return "", fmt.Errorf("GetEndpointReference failed: %w", err)
+	}
+
+	return resp.GUID, nil
+}
+
+// GetNetworkProtocols gets defined network protocols from a device
+func (c *Client) GetNetworkProtocols(ctx context.Context) ([]*NetworkProtocol, error) {
+	type GetNetworkProtocols struct {
+		XMLName xml.Name `xml:"tds:GetNetworkProtocols"`
+		Xmlns   string   `xml:"xmlns:tds,attr"`
+	}
+
+	type GetNetworkProtocolsResponse struct {
+		XMLName          xml.Name `xml:"GetNetworkProtocolsResponse"`
+		NetworkProtocols []struct {
+			Name    string `xml:"Name"`
+			Enabled bool   `xml:"Enabled"`
+			Port    []int  `xml:"Port"`
+		} `xml:"NetworkProtocols"`
+	}
+
+	req := GetNetworkProtocols{
+		Xmlns: deviceNamespace,
+	}
+
+	var resp GetNetworkProtocolsResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, &resp); err != nil {
+		return nil, fmt.Errorf("GetNetworkProtocols failed: %w", err)
+	}
+
+	protocols := make([]*NetworkProtocol, len(resp.NetworkProtocols))
+	for i, proto := range resp.NetworkProtocols {
+		protocols[i] = &NetworkProtocol{
+			Name:    NetworkProtocolType(proto.Name),
+			Enabled: proto.Enabled,
+			Port:    proto.Port,
+		}
+	}
+
+	return protocols, nil
+}
+
+// SetNetworkProtocols configures defined network protocols on a device
+func (c *Client) SetNetworkProtocols(ctx context.Context, protocols []*NetworkProtocol) error {
+	type SetNetworkProtocols struct {
+		XMLName          xml.Name `xml:"tds:SetNetworkProtocols"`
+		Xmlns            string   `xml:"xmlns:tds,attr"`
+		NetworkProtocols []struct {
+			Name    string `xml:"tds:Name"`
+			Enabled bool   `xml:"tds:Enabled"`
+			Port    []int  `xml:"tds:Port"`
+		} `xml:"tds:NetworkProtocols"`
+	}
+
+	req := SetNetworkProtocols{
+		Xmlns: deviceNamespace,
+	}
+
+	for _, proto := range protocols {
+		req.NetworkProtocols = append(req.NetworkProtocols, struct {
+			Name    string `xml:"tds:Name"`
+			Enabled bool   `xml:"tds:Enabled"`
+			Port    []int  `xml:"tds:Port"`
+		}{
+			Name:    string(proto.Name),
+			Enabled: proto.Enabled,
+			Port:    proto.Port,
+		})
+	}
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, nil); err != nil {
+		return fmt.Errorf("SetNetworkProtocols failed: %w", err)
+	}
+
+	return nil
+}
+
+// GetNetworkDefaultGateway gets the default gateway settings from a device
+func (c *Client) GetNetworkDefaultGateway(ctx context.Context) (*NetworkGateway, error) {
+	type GetNetworkDefaultGateway struct {
+		XMLName xml.Name `xml:"tds:GetNetworkDefaultGateway"`
+		Xmlns   string   `xml:"xmlns:tds,attr"`
+	}
+
+	type GetNetworkDefaultGatewayResponse struct {
+		XMLName        xml.Name `xml:"GetNetworkDefaultGatewayResponse"`
+		NetworkGateway struct {
+			IPv4Address []string `xml:"IPv4Address"`
+			IPv6Address []string `xml:"IPv6Address"`
+		} `xml:"NetworkGateway"`
+	}
+
+	req := GetNetworkDefaultGateway{
+		Xmlns: deviceNamespace,
+	}
+
+	var resp GetNetworkDefaultGatewayResponse
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, &resp); err != nil {
+		return nil, fmt.Errorf("GetNetworkDefaultGateway failed: %w", err)
+	}
+
+	return &NetworkGateway{
+		IPv4Address: resp.NetworkGateway.IPv4Address,
+		IPv6Address: resp.NetworkGateway.IPv6Address,
+	}, nil
+}
+
+// SetNetworkDefaultGateway sets the default gateway settings on a device
+func (c *Client) SetNetworkDefaultGateway(ctx context.Context, gateway *NetworkGateway) error {
+	type SetNetworkDefaultGateway struct {
+		XMLName     xml.Name `xml:"tds:SetNetworkDefaultGateway"`
+		Xmlns       string   `xml:"xmlns:tds,attr"`
+		IPv4Address []string `xml:"tds:IPv4Address,omitempty"`
+		IPv6Address []string `xml:"tds:IPv6Address,omitempty"`
+	}
+
+	req := SetNetworkDefaultGateway{
+		Xmlns:       deviceNamespace,
+		IPv4Address: gateway.IPv4Address,
+		IPv6Address: gateway.IPv6Address,
+	}
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
+
+	if err := soapClient.Call(ctx, c.endpoint, "", req, nil); err != nil {
+		return fmt.Errorf("SetNetworkDefaultGateway failed: %w", err)
+	}
+
+	return nil
+}

@@ -1,5 +1,3 @@
-version: "2"
-
 linters:
   enable:
     - errcheck
@@ -9,3 +7,7 @@ linters:
 
 run:
   timeout: 5m
+
+output:
+  formats:
+    - colored-line-number

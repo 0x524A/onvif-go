@@ -636,3 +636,442 @@ type FocusStatus struct {
 	MoveStatus string
 	Error      string
 }
+
+// Service represents an ONVIF service
+type Service struct {
+	Namespace    string
+	XAddr        string
+	Capabilities interface{}
+	Version      OnvifVersion
+}
+
+// OnvifVersion represents ONVIF version
+type OnvifVersion struct {
+	Major int
+	Minor int
+}
+
+// DeviceServiceCapabilities represents device service capabilities
+type DeviceServiceCapabilities struct {
+	Network  *NetworkCapabilities
+	Security *SecurityCapabilities
+	System   *SystemCapabilities
+	Misc     *MiscCapabilities
+}
+
+// MiscCapabilities represents miscellaneous capabilities
+type MiscCapabilities struct {
+	AuxiliaryCommands []string
+}
+
+// DiscoveryMode represents discovery mode
+type DiscoveryMode string
+
+const (
+	DiscoveryModeDiscoverable    DiscoveryMode = "Discoverable"
+	DiscoveryModeNonDiscoverable DiscoveryMode = "NonDiscoverable"
+)
+
+// NetworkProtocol represents network protocol configuration
+type NetworkProtocol struct {
+	Name    NetworkProtocolType
+	Enabled bool
+	Port    []int
+}
+
+// NetworkProtocolType represents protocol type
+type NetworkProtocolType string
+
+const (
+	NetworkProtocolHTTP  NetworkProtocolType = "HTTP"
+	NetworkProtocolHTTPS NetworkProtocolType = "HTTPS"
+	NetworkProtocolRTSP  NetworkProtocolType = "RTSP"
+)
+
+// NetworkGateway represents default gateway
+type NetworkGateway struct {
+	IPv4Address []string
+	IPv6Address []string
+}
+
+// SystemDateTime represents system date and time
+type SystemDateTime struct {
+	DateTimeType    SetDateTimeType
+	DaylightSavings bool
+	TimeZone        *TimeZone
+	UTCDateTime     *DateTime
+	LocalDateTime   *DateTime
+}
+
+// SetDateTimeType represents date/time set method
+type SetDateTimeType string
+
+const (
+	SetDateTimeManual SetDateTimeType = "Manual"
+	SetDateTimeNTP    SetDateTimeType = "NTP"
+)
+
+// TimeZone represents timezone
+type TimeZone struct {
+	TZ string // POSIX format
+}
+
+// DateTime represents date and time
+type DateTime struct {
+	Time Time
+	Date Date
+}
+
+// Time represents time
+type Time struct {
+	Hour   int
+	Minute int
+	Second int
+}
+
+// Date represents date
+type Date struct {
+	Year  int
+	Month int
+	Day   int
+}
+
+// SystemLogType represents system log type
+type SystemLogType string
+
+const (
+	SystemLogTypeSystem SystemLogType = "System"
+	SystemLogTypeAccess SystemLogType = "Access"
+)
+
+// SystemLog represents system log data
+type SystemLog struct {
+	Binary *AttachmentData
+	String string
+}
+
+// AttachmentData represents attachment/binary data
+type AttachmentData struct {
+	ContentType string
+	Include     *Include
+}
+
+// Include represents XOP include
+type Include struct {
+	Href string
+}
+
+// BackupFile represents backup file
+type BackupFile struct {
+	Name string
+	Data AttachmentData
+}
+
+// FactoryDefaultType represents factory default type
+type FactoryDefaultType string
+
+const (
+	FactoryDefaultHard FactoryDefaultType = "Hard"
+	FactoryDefaultSoft FactoryDefaultType = "Soft"
+)
+
+// RelayOutput represents relay output
+type RelayOutput struct {
+	Token      string
+	Properties RelayOutputSettings
+}
+
+// RelayOutputSettings represents relay output settings
+type RelayOutputSettings struct {
+	Mode      RelayMode
+	DelayTime time.Duration
+	IdleState RelayIdleState
+}
+
+// RelayMode represents relay mode
+type RelayMode string
+
+const (
+	RelayModeMonostable RelayMode = "Monostable"
+	RelayModeBistable   RelayMode = "Bistable"
+)
+
+// RelayIdleState represents relay idle state
+type RelayIdleState string
+
+const (
+	RelayIdleStateClosed RelayIdleState = "closed"
+	RelayIdleStateOpen   RelayIdleState = "open"
+)
+
+// RelayLogicalState represents relay logical state
+type RelayLogicalState string
+
+const (
+	RelayLogicalStateActive   RelayLogicalState = "active"
+	RelayLogicalStateInactive RelayLogicalState = "inactive"
+)
+
+// AuxiliaryData represents auxiliary command data
+type AuxiliaryData string
+
+// SupportInformation represents support information
+type SupportInformation struct {
+	Binary *AttachmentData
+	String string
+}
+
+// SystemLogUriList represents system log URIs
+type SystemLogUriList struct {
+	SystemLog []SystemLogUri
+}
+
+// SystemLogUri represents system log URI
+type SystemLogUri struct {
+	Type SystemLogType
+	Uri  string
+}
+
+// NetworkZeroConfiguration represents zero-configuration
+type NetworkZeroConfiguration struct {
+	InterfaceToken string
+	Enabled        bool
+	Addresses      []string
+}
+
+// DynamicDNSInformation represents dynamic DNS info
+type DynamicDNSInformation struct {
+	Type DynamicDNSType
+	Name string
+	TTL  time.Duration
+}
+
+// DynamicDNSType represents dynamic DNS type
+type DynamicDNSType string
+
+const (
+	DynamicDNSNoUpdate      DynamicDNSType = "NoUpdate"
+	DynamicDNSClientUpdates DynamicDNSType = "ClientUpdates"
+	DynamicDNSServerUpdates DynamicDNSType = "ServerUpdates"
+)
+
+// IPAddressFilter represents IP address filter
+type IPAddressFilter struct {
+	Type        IPAddressFilterType
+	IPv4Address []PrefixedIPv4Address
+	IPv6Address []PrefixedIPv6Address
+}
+
+// IPAddressFilterType represents filter type
+type IPAddressFilterType string
+
+const (
+	IPAddressFilterAllow IPAddressFilterType = "Allow"
+	IPAddressFilterDeny  IPAddressFilterType = "Deny"
+)
+
+// RemoteUser represents remote user configuration
+type RemoteUser struct {
+	Username           string
+	Password           string
+	UseDerivedPassword bool
+}
+
+// Certificate represents a certificate
+type Certificate struct {
+	CertificateID string
+	Certificate   BinaryData
+}
+
+// BinaryData represents binary data
+type BinaryData struct {
+	ContentType string
+	Data        []byte
+}
+
+// CertificateStatus represents certificate status
+type CertificateStatus struct {
+	CertificateID string
+	Status        bool
+}
+
+// CertificateInformation represents certificate information
+type CertificateInformation struct {
+	CertificateID      string
+	IssuerDN           string
+	SubjectDN          string
+	KeyUsage           *CertificateUsage
+	ExtendedKeyUsage   *CertificateUsage
+	KeyLength          int
+	Version            string
+	SerialNum          string
+	SignatureAlgorithm string
+	Validity           *DateTimeRange
+}
+
+// CertificateUsage represents certificate usage
+type CertificateUsage struct {
+	Critical bool
+	Value    string
+}
+
+// DateTimeRange represents date/time range
+type DateTimeRange struct {
+	From  time.Time
+	Until time.Time
+}
+
+// Dot11Capabilities represents 802.11 capabilities
+type Dot11Capabilities struct {
+	TKIP                  bool
+	ScanAvailableNetworks bool
+	MultipleConfiguration bool
+	AdHocStationMode      bool
+	WEP                   bool
+}
+
+// Dot11Status represents 802.11 status
+type Dot11Status struct {
+	SSID              string
+	BSSID             string
+	PairCipher        Dot11Cipher
+	GroupCipher       Dot11Cipher
+	SignalStrength    Dot11SignalStrength
+	ActiveConfigAlias string
+}
+
+// Dot11Cipher represents 802.11 cipher
+type Dot11Cipher string
+
+const (
+	Dot11CipherCCMP     Dot11Cipher = "CCMP"
+	Dot11CipherTKIP     Dot11Cipher = "TKIP"
+	Dot11CipherAny      Dot11Cipher = "Any"
+	Dot11CipherExtended Dot11Cipher = "Extended"
+)
+
+// Dot11SignalStrength represents signal strength
+type Dot11SignalStrength string
+
+const (
+	Dot11SignalNone     Dot11SignalStrength = "None"
+	Dot11SignalVeryBad  Dot11SignalStrength = "Very Bad"
+	Dot11SignalBad      Dot11SignalStrength = "Bad"
+	Dot11SignalGood     Dot11SignalStrength = "Good"
+	Dot11SignalVeryGood Dot11SignalStrength = "Very Good"
+	Dot11SignalExtended Dot11SignalStrength = "Extended"
+)
+
+// Dot1XConfiguration represents 802.1X configuration
+type Dot1XConfiguration struct {
+	Dot1XConfigurationToken string
+	Identity                string
+	AnonymousID             string
+	EAPMethod               int
+	CACertificateID         []string
+	EAPMethodConfiguration  *EAPMethodConfiguration
+}
+
+// EAPMethodConfiguration represents EAP method configuration
+type EAPMethodConfiguration struct {
+	TLSConfiguration *TLSConfiguration
+	Password         string
+}
+
+// TLSConfiguration represents TLS configuration
+type TLSConfiguration struct {
+	CertificateID string
+}
+
+// Dot11AvailableNetworks represents available 802.11 networks
+type Dot11AvailableNetworks struct {
+	SSID                  string
+	BSSID                 string
+	AuthAndMangementSuite []Dot11AuthAndMangementSuite
+	PairCipher            []Dot11Cipher
+	GroupCipher           []Dot11Cipher
+	SignalStrength        Dot11SignalStrength
+}
+
+// Dot11AuthAndMangementSuite represents auth suite
+type Dot11AuthAndMangementSuite string
+
+const (
+	Dot11AuthNone     Dot11AuthAndMangementSuite = "None"
+	Dot11AuthDot1X    Dot11AuthAndMangementSuite = "Dot1X"
+	Dot11AuthPSK      Dot11AuthAndMangementSuite = "PSK"
+	Dot11AuthExtended Dot11AuthAndMangementSuite = "Extended"
+)
+
+// StorageConfiguration represents storage configuration
+type StorageConfiguration struct {
+	Token string
+	Data  StorageConfigurationData
+}
+
+// StorageConfigurationData represents storage configuration data
+type StorageConfigurationData struct {
+	Type                       string
+	LocalPath                  string
+	StorageUri                 string
+	User                       *UserCredential
+	CertPathValidationPolicyID string
+}
+
+// UserCredential represents user credentials
+type UserCredential struct {
+	UserName string
+	Password string
+	Token    string
+}
+
+// LocationEntity represents geo location
+type LocationEntity struct {
+	Entity    string  `xml:"Entity"`
+	Token     string  `xml:"Token"`
+	Fixed     bool    `xml:"Fixed"`
+	Lon       float64 `xml:"Lon,attr"`
+	Lat       float64 `xml:"Lat,attr"`
+	Elevation float64 `xml:"Elevation,attr"`
+}
+
+// GeoLocation represents geographic location coordinates
+type GeoLocation struct {
+	Lon       float64 `xml:"lon,attr,omitempty"`       // Longitude in degrees
+	Lat       float64 `xml:"lat,attr,omitempty"`       // Latitude in degrees
+	Elevation float64 `xml:"elevation,attr,omitempty"` // Elevation in meters
+}
+
+// AccessPolicy represents device access policy configuration
+type AccessPolicy struct {
+	PolicyFile *BinaryData
+}
+
+// PasswordComplexityConfiguration represents password complexity config
+type PasswordComplexityConfiguration struct {
+	MinLen                    int
+	Uppercase                 int
+	Number                    int
+	SpecialChars              int
+	BlockUsernameOccurrence   bool
+	PolicyConfigurationLocked bool
+}
+
+// PasswordHistoryConfiguration represents password history config
+type PasswordHistoryConfiguration struct {
+	Enabled bool
+	Length  int
+}
+
+// AuthFailureWarningConfiguration represents auth failure warning config
+type AuthFailureWarningConfiguration struct {
+	Enabled         bool
+	MonitorPeriod   int
+	MaxAuthFailures int
+}
+
+// IntRange represents integer range
+type IntRange struct {
+	Min int
+	Max int
+}
