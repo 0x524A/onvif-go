@@ -18,15 +18,15 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@v4
     
     - name: Set up Go
-      uses: actions/setup-go@0a12ed9d6470c3512128ab8f076f97fbbff3da52 # v5.0.1
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
     
     - name: Cache Go modules
-      uses: actions/cache@1bd1e32a3bdc2474371e44e3f675e0e8cb6f3eff # v4.2.0
+      uses: actions/cache@v4
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
