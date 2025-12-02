@@ -28,6 +28,8 @@ func (c *Client) getMediaSoapClient() *soap.Client {
 }
 
 // GetProfiles retrieves all media profiles.
+//
+//nolint:funlen // GetProfiles has many statements due to parsing complex profile structures
 func (c *Client) GetProfiles(ctx context.Context) ([]*Profile, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
@@ -163,7 +165,7 @@ func (c *Client) GetStreamURI(ctx context.Context, profileToken string) (*MediaU
 		endpoint = c.endpoint
 	}
 
-	type GetStreamUri struct {
+	type GetStreamURI struct {
 		XMLName     xml.Name `xml:"trt:GetStreamUri"`
 		Xmlns       string   `xml:"xmlns:trt,attr"`
 		Xmlnst      string   `xml:"xmlns:tt,attr"`
@@ -176,17 +178,17 @@ func (c *Client) GetStreamURI(ctx context.Context, profileToken string) (*MediaU
 		ProfileToken string `xml:"trt:ProfileToken"`
 	}
 
-	type GetStreamUriResponse struct {
+	type GetStreamURIResponse struct {
 		XMLName  xml.Name `xml:"GetStreamUriResponse"`
-		MediaUri struct {
-			Uri                 string `xml:"Uri"`
+		MediaURI struct {
+			URI                 string `xml:"Uri"`
 			InvalidAfterConnect bool   `xml:"InvalidAfterConnect"`
 			InvalidAfterReboot  bool   `xml:"InvalidAfterReboot"`
 			Timeout             string `xml:"Timeout"`
 		} `xml:"MediaUri"`
 	}
 
-	req := GetStreamUri{
+	req := GetStreamURI{
 		Xmlns:        mediaNamespace,
 		Xmlnst:       "http://www.onvif.org/ver10/schema",
 		ProfileToken: profileToken,
@@ -194,19 +196,19 @@ func (c *Client) GetStreamURI(ctx context.Context, profileToken string) (*MediaU
 	req.StreamSetup.Stream = "RTP-Unicast"
 	req.StreamSetup.Transport.Protocol = "RTSP"
 
-	var resp GetStreamUriResponse
+	var resp GetStreamURIResponse
 
 	username, password := c.GetCredentials()
 	soapClient := soap.NewClient(c.httpClient, username, password)
 
 	if err := soapClient.Call(ctx, endpoint, "", req, &resp); err != nil {
-		return nil, fmt.Errorf("GetStreamUri failed: %w", err)
+		return nil, fmt.Errorf("GetStreamURI failed: %w", err)
 	}
 
 	return &MediaURI{
-		URI:                 resp.MediaUri.Uri,
-		InvalidAfterConnect: resp.MediaUri.InvalidAfterConnect,
-		InvalidAfterReboot:  resp.MediaUri.InvalidAfterReboot,
+		URI:                 resp.MediaURI.URI,
+		InvalidAfterConnect: resp.MediaURI.InvalidAfterConnect,
+		InvalidAfterReboot:  resp.MediaURI.InvalidAfterReboot,
 	}, nil
 }
 
@@ -217,40 +219,40 @@ func (c *Client) GetSnapshotURI(ctx context.Context, profileToken string) (*Medi
 		endpoint = c.endpoint
 	}
 
-	type GetSnapshotUri struct {
+	type GetSnapshotURI struct {
 		XMLName      xml.Name `xml:"trt:GetSnapshotUri"`
 		Xmlns        string   `xml:"xmlns:trt,attr"`
 		ProfileToken string   `xml:"trt:ProfileToken"`
 	}
 
-	type GetSnapshotUriResponse struct {
+	type GetSnapshotURIResponse struct {
 		XMLName  xml.Name `xml:"GetSnapshotUriResponse"`
-		MediaUri struct {
-			Uri                 string `xml:"Uri"`
+		MediaURI struct {
+			URI                 string `xml:"Uri"`
 			InvalidAfterConnect bool   `xml:"InvalidAfterConnect"`
 			InvalidAfterReboot  bool   `xml:"InvalidAfterReboot"`
 			Timeout             string `xml:"Timeout"`
 		} `xml:"MediaUri"`
 	}
 
-	req := GetSnapshotUri{
+	req := GetSnapshotURI{
 		Xmlns:        mediaNamespace,
 		ProfileToken: profileToken,
 	}
 
-	var resp GetSnapshotUriResponse
+	var resp GetSnapshotURIResponse
 
 	username, password := c.GetCredentials()
 	soapClient := soap.NewClient(c.httpClient, username, password)
 
 	if err := soapClient.Call(ctx, endpoint, "", req, &resp); err != nil {
-		return nil, fmt.Errorf("GetSnapshotUri failed: %w", err)
+		return nil, fmt.Errorf("GetSnapshotURI failed: %w", err)
 	}
 
 	return &MediaURI{
-		URI:                 resp.MediaUri.Uri,
-		InvalidAfterConnect: resp.MediaUri.InvalidAfterConnect,
-		InvalidAfterReboot:  resp.MediaUri.InvalidAfterReboot,
+		URI:                 resp.MediaURI.URI,
+		InvalidAfterConnect: resp.MediaURI.InvalidAfterConnect,
+		InvalidAfterReboot:  resp.MediaURI.InvalidAfterReboot,
 	}, nil
 }
 
@@ -637,7 +639,7 @@ func (c *Client) GetMediaServiceCapabilities(ctx context.Context) (*MediaService
 	type GetServiceCapabilitiesResponse struct {
 		XMLName      xml.Name `xml:"GetServiceCapabilitiesResponse"`
 		Capabilities struct {
-			SnapshotUri         bool `xml:"SnapshotUri,attr"`
+			SnapshotURI         bool `xml:"SnapshotUri,attr"`
 			Rotation            bool `xml:"Rotation,attr"`
 			VideoSourceMode     bool `xml:"VideoSourceMode,attr"`
 			OSD                 bool `xml:"OSD,attr"`
@@ -648,8 +650,8 @@ func (c *Client) GetMediaServiceCapabilities(ctx context.Context) (*MediaService
 			} `xml:"ProfileCapabilities"`
 			StreamingCapabilities *struct {
 				RTPMulticast bool `xml:"RTPMulticast,attr"`
-				RTP_TCP      bool `xml:"RTP_TCP,attr"`
-				RTP_RTSP_TCP bool `xml:"RTP_RTSP_TCP,attr"`
+				RTPTCP       bool `xml:"RTP_TCP,attr"`
+				RTPRTSPTCP   bool `xml:"RTP_RTSP_TCP,attr"`
 			} `xml:"StreamingCapabilities"`
 		} `xml:"Capabilities"`
 	}
@@ -668,7 +670,7 @@ func (c *Client) GetMediaServiceCapabilities(ctx context.Context) (*MediaService
 	}
 
 	caps := &MediaServiceCapabilities{
-		SnapshotUri:      resp.Capabilities.SnapshotUri,
+		SnapshotURI:      resp.Capabilities.SnapshotURI,
 		Rotation:         resp.Capabilities.Rotation,
 		VideoSourceMode:  resp.Capabilities.VideoSourceMode,
 		OSD:              resp.Capabilities.OSD,
@@ -682,14 +684,16 @@ func (c *Client) GetMediaServiceCapabilities(ctx context.Context) (*MediaService
 
 	if resp.Capabilities.StreamingCapabilities != nil {
 		caps.RTPMulticast = resp.Capabilities.StreamingCapabilities.RTPMulticast
-		caps.RTP_TCP = resp.Capabilities.StreamingCapabilities.RTP_TCP
-		caps.RTP_RTSP_TCP = resp.Capabilities.StreamingCapabilities.RTP_RTSP_TCP
+		caps.RTPTCP = resp.Capabilities.StreamingCapabilities.RTPTCP
+		caps.RTPRTSPTCP = resp.Capabilities.StreamingCapabilities.RTPRTSPTCP
 	}
 
 	return caps, nil
 }
 
 // GetVideoEncoderConfigurationOptions retrieves available options for video encoder configuration.
+//
+//nolint:funlen // GetVideoEncoderConfigurationOptions has many statements due to parsing complex encoder options
 func (c *Client) GetVideoEncoderConfigurationOptions(ctx context.Context, configurationToken string) (*VideoEncoderConfigurationOptions, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {

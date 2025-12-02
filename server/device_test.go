@@ -28,7 +28,7 @@ func TestHandleGetDeviceInformation(t *testing.T) {
 		{"Model", deviceResp.Model, config.DeviceInfo.Model},
 		{"FirmwareVersion", deviceResp.FirmwareVersion, config.DeviceInfo.FirmwareVersion},
 		{"SerialNumber", deviceResp.SerialNumber, config.DeviceInfo.SerialNumber},
-		{"HardwareId", deviceResp.HardwareId, config.DeviceInfo.HardwareID},
+		{"HardwareID", deviceResp.HardwareID, config.DeviceInfo.HardwareID},
 	}
 
 	for _, tt := range tests {
@@ -162,7 +162,7 @@ func TestGetDeviceInformationResponseXML(t *testing.T) {
 		Model:           "TestModel",
 		FirmwareVersion: "1.0.0",
 		SerialNumber:    "SN123",
-		HardwareId:      "HW001",
+		HardwareID:      "HW001",
 	}
 
 	// Marshal to XML
@@ -209,8 +209,8 @@ func TestCapabilitiesStructure(t *testing.T) {
 			XAddr: "http://localhost:8080/onvif/media_service",
 			StreamingCapabilities: &StreamingCapabilities{
 				RTPMulticast: true,
-				RTP_TCP:      true,
-				RTP_RTSP_TCP: true,
+				RTPTCP:       true,
+				RTPRTSPTCP:   true,
 			},
 		},
 	}
@@ -239,8 +239,8 @@ func TestMediaCapabilitiesStructure(t *testing.T) {
 		XAddr: "http://localhost:8080/onvif/media_service",
 		StreamingCapabilities: &StreamingCapabilities{
 			RTPMulticast: true,
-			RTP_TCP:      true,
-			RTP_RTSP_TCP: true,
+			RTPTCP:       true,
+			RTPRTSPTCP:   true,
 		},
 	}
 
@@ -251,10 +251,10 @@ func TestMediaCapabilitiesStructure(t *testing.T) {
 	if !caps.StreamingCapabilities.RTPMulticast {
 		t.Error("RTP Multicast should be supported")
 	}
-	if !caps.StreamingCapabilities.RTP_TCP {
+	if !caps.StreamingCapabilities.RTPTCP {
 		t.Error("RTP TCP should be supported")
 	}
-	if !caps.StreamingCapabilities.RTP_RTSP_TCP {
+	if !caps.StreamingCapabilities.RTPRTSPTCP {
 		t.Error("RTSP should be supported")
 	}
 }
@@ -368,8 +368,8 @@ func TestGetCapabilitiesResponse(t *testing.T) {
 			XAddr: "http://localhost:8080/media",
 			StreamingCapabilities: &StreamingCapabilities{
 				RTPMulticast: true,
-				RTP_TCP:      true,
-				RTP_RTSP_TCP: true,
+				RTPTCP:       true,
+				RTPRTSPTCP:   true,
 			},
 		},
 	}

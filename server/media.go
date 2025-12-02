@@ -138,12 +138,12 @@ type IPAddress struct {
 // GetStreamURIResponse represents GetStreamURI response.
 type GetStreamURIResponse struct {
 	XMLName  xml.Name `xml:"http://www.onvif.org/ver10/media/wsdl GetStreamURIResponse"`
-	MediaUri MediaUri `xml:"MediaUri"`
+	MediaURI MediaURI `xml:"MediaUri"`
 }
 
-// MediaUri represents a media URI.
-type MediaUri struct {
-	Uri                 string `xml:"Uri"`
+// MediaURI represents a media URI.
+type MediaURI struct {
+	URI                 string `xml:"Uri"`
 	InvalidAfterConnect bool   `xml:"InvalidAfterConnect"`
 	InvalidAfterReboot  bool   `xml:"InvalidAfterReboot"`
 	Timeout             string `xml:"Timeout"`
@@ -152,7 +152,7 @@ type MediaUri struct {
 // GetSnapshotURIResponse represents GetSnapshotURI response.
 type GetSnapshotURIResponse struct {
 	XMLName  xml.Name `xml:"http://www.onvif.org/ver10/media/wsdl GetSnapshotURIResponse"`
-	MediaUri MediaUri `xml:"MediaUri"`
+	MediaURI MediaURI `xml:"MediaUri"`
 }
 
 // GetVideoSourcesResponse represents GetVideoSources response.
@@ -287,8 +287,8 @@ func (s *Server) HandleGetStreamURI(body interface{}) (interface{}, error) {
 	}
 
 	return &GetStreamURIResponse{
-		MediaUri: MediaUri{
-			Uri:                 uri,
+		MediaURI: MediaURI{
+			URI:                 uri,
 			InvalidAfterConnect: false,
 			InvalidAfterReboot:  true,
 			Timeout:             "PT60S",
@@ -333,8 +333,8 @@ func (s *Server) HandleGetSnapshotURI(body interface{}) (interface{}, error) {
 		host, s.config.Port, s.config.BasePath, req.ProfileToken)
 
 	return &GetSnapshotURIResponse{
-		MediaUri: MediaUri{
-			Uri:                 uri,
+		MediaURI: MediaURI{
+			URI:                 uri,
 			InvalidAfterConnect: false,
 			InvalidAfterReboot:  true,
 			Timeout:             "PT5S",

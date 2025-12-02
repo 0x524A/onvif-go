@@ -50,6 +50,8 @@ func (c *Client) GetDeviceInformation(ctx context.Context) (*DeviceInformation, 
 }
 
 // GetCapabilities retrieves device capabilities.
+//
+//nolint:funlen // GetCapabilities has many statements due to parsing multiple service capabilities
 func (c *Client) GetCapabilities(ctx context.Context) (*Capabilities, error) {
 	type GetCapabilities struct {
 		XMLName  xml.Name `xml:"tds:GetCapabilities"`
@@ -110,8 +112,8 @@ func (c *Client) GetCapabilities(ctx context.Context) (*Capabilities, error) {
 				XAddr                 string `xml:"XAddr"`
 				StreamingCapabilities *struct {
 					RTPMulticast bool `xml:"RTPMulticast"`
-					RTP_TCP      bool `xml:"RTP_TCP"`
-					RTP_RTSP_TCP bool `xml:"RTP_RTSP_TCP"`
+					RTPTCP       bool `xml:"RTP_TCP"`
+					RTPRTSPTCP   bool `xml:"RTP_RTSP_TCP"`
 				} `xml:"StreamingCapabilities"`
 			} `xml:"Media"`
 			PTZ *struct {
@@ -214,8 +216,8 @@ func (c *Client) GetCapabilities(ctx context.Context) (*Capabilities, error) {
 		if resp.Capabilities.Media.StreamingCapabilities != nil {
 			capabilities.Media.StreamingCapabilities = &StreamingCapabilities{
 				RTPMulticast: resp.Capabilities.Media.StreamingCapabilities.RTPMulticast,
-				RTP_TCP:      resp.Capabilities.Media.StreamingCapabilities.RTP_TCP,
-				RTP_RTSP_TCP: resp.Capabilities.Media.StreamingCapabilities.RTP_RTSP_TCP,
+				RTPTCP:       resp.Capabilities.Media.StreamingCapabilities.RTPTCP,
+				RTPRTSPTCP:   resp.Capabilities.Media.StreamingCapabilities.RTPRTSPTCP,
 			}
 		}
 	}

@@ -467,8 +467,8 @@ func TestGetMediaServiceCapabilities(t *testing.T) {
 		t.Fatalf("GetMediaServiceCapabilities() failed: %v", err)
 	}
 
-	if !caps.SnapshotUri {
-		t.Error("Expected SnapshotUri to be true")
+	if !caps.SnapshotURI {
+		t.Error("Expected SnapshotURI to be true")
 	}
 
 	if caps.MaximumNumberOfProfiles != 10 {

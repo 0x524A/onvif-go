@@ -74,11 +74,11 @@ func TestGetMediaServiceCapabilities_Bosch(t *testing.T) {
 	if !capabilities.RTPMulticast {
 		t.Error("Expected RTPMulticast=true (Bosch FLEXIDOME)")
 	}
-	if !capabilities.RTP_RTSP_TCP {
-		t.Error("Expected RTP_RTSP_TCP=true (Bosch FLEXIDOME)")
+	if !capabilities.RTPRTSPTCP {
+		t.Error("Expected RTPRTSPTCP=true (Bosch FLEXIDOME)")
 	}
-	if capabilities.SnapshotUri {
-		t.Error("Expected SnapshotUri=false (Bosch FLEXIDOME)")
+	if capabilities.SnapshotURI {
+		t.Error("Expected SnapshotURI=false (Bosch FLEXIDOME)")
 	}
 	if !capabilities.Rotation {
 		t.Error("Expected Rotation=true (Bosch FLEXIDOME)")

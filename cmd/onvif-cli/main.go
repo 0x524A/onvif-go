@@ -177,6 +177,8 @@ func (c *CLI) discoverCameras() {
 }
 
 // discoverWithInterfaceSelection shows available network interfaces and lets user select one.
+//
+//nolint:gocyclo // Interface selection has high complexity due to multiple user interaction paths
 func (c *CLI) discoverWithInterfaceSelection() ([]*discovery.Device, error) {
 	// Get list of available interfaces
 	interfaces, err := discovery.ListNetworkInterfaces()
@@ -1471,6 +1473,7 @@ func (c *CLI) advancedImagingSettings(ctx context.Context, videoSourceToken stri
 	c.getImagingSettings(ctx, videoSourceToken)
 }
 
+//nolint:gocyclo // Snapshot capture and display has high complexity due to multiple error handling paths
 func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
 	fmt.Println("📷 Capture Snapshot as ASCII Preview")
 	fmt.Println("===================================")
@@ -1595,7 +1598,7 @@ func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
 		if filename == "" {
 			filename = "snapshot.jpg"
 		}
-		if err := os.WriteFile(filename, snapshotData, 0644); err != nil {
+		if err := os.WriteFile(filename, snapshotData, 0600); err != nil { //nolint:gosec // 0600 is appropriate for CLI output files
 			fmt.Printf("❌ Failed to save file: %v\n", err)
 		} else {
 			fmt.Printf("✅ Snapshot saved to %s\n", filename)

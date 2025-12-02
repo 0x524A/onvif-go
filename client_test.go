@@ -1013,7 +1013,7 @@ func TestDigestAuthTransport(t *testing.T) {
 		Timeout: DefaultTimeout,
 	}
 
-	req, err := http.NewRequest("GET", server.URL, http.NoBody)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", server.URL, http.NoBody)
 	if err != nil {
 		t.Fatalf("NewRequest() failed: %v", err)
 	}
@@ -1358,7 +1358,7 @@ func TestDigestAuthTransportConcurrency(t *testing.T) {
 
 	for i := 0; i < numRequests; i++ {
 		go func(id int) {
-			req, err := http.NewRequest("GET", server.URL, http.NoBody)
+			req, err := http.NewRequestWithContext(context.Background(), "GET", server.URL, http.NoBody)
 			if err != nil {
 				errors <- fmt.Errorf("request %d: %w", id, fmt.Errorf("%w", ErrTestRequestNewFailed))
 				done <- true

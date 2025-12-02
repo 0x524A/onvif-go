@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // SHA1 used for ONVIF digest authentication
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
@@ -42,14 +42,14 @@ type Fault struct {
 
 // Security represents WS-Security header.
 type Security struct {
-	XMLName xml.Name `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd Security"`
+	XMLName        xml.Name       `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd Security"`
 	MustUnderstand string         `xml:"http://www.w3.org/2003/05/soap-envelope mustUnderstand,attr,omitempty"`
 	UsernameToken  *UsernameToken `xml:"UsernameToken,omitempty"`
 }
 
 // UsernameToken represents a WS-Security username token.
 type UsernameToken struct {
-	XMLName xml.Name `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd UsernameToken"`
+	XMLName  xml.Name `xml:"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd UsernameToken"`
 	Username string   `xml:"Username"`
 	Password Password `xml:"Password"`
 	Nonce    Nonce    `xml:"Nonce"`
@@ -195,7 +195,8 @@ func (c *Client) Call(ctx context.Context, endpoint, action string, request, res
 // createSecurityHeader creates a WS-Security header with username token digest.
 func (c *Client) createSecurityHeader() *Security {
 	// Generate nonce
-	nonceBytes := make([]byte, 16)
+	const nonceSize = 16
+	nonceBytes := make([]byte, nonceSize)
 	//nolint:errcheck // rand.Read always returns len(nonceBytes), nil for sufficient entropy
 	_, _ = rand.Read(nonceBytes)
 	nonce := base64.StdEncoding.EncodeToString(nonceBytes)
@@ -204,7 +205,7 @@ func (c *Client) createSecurityHeader() *Security {
 	created := time.Now().UTC().Format(time.RFC3339)
 
 	// Calculate password digest: Base64(SHA1(nonce + created + password))
-	hash := sha1.New()
+	hash := sha1.New() //nolint:gosec // SHA1 required for ONVIF digest auth
 	hash.Write(nonceBytes)
 	hash.Write([]byte(created))
 	hash.Write([]byte(c.password))

@@ -17,11 +17,21 @@ type ASCIIConfig struct {
 	Quality string // "high", "medium", "low"
 }
 
+const (
+	defaultASCIIWidth  = 120
+	defaultASCIIHeight = 40
+	maxColorValue      = 255
+	bitShift8          = 8
+	bufferSize1024     = 1024
+	largeASCIIWidth    = 160
+	largeASCIIHeight   = 50
+)
+
 // DefaultASCIIConfig returns a sensible default configuration.
 func DefaultASCIIConfig() ASCIIConfig {
 	return ASCIIConfig{
-		Width:   120,
-		Height:  40,
+		Width:   defaultASCIIWidth,
+		Height:  defaultASCIIHeight,
 		Invert:  false,
 		Quality: "medium",
 	}
@@ -46,7 +56,7 @@ var (
 		'o', 'O', '0', 'e', 'E', 'p', 'P', 'x', 'X', '$', 'D', 'W', 'M', '@', '#'}
 )
 
-// Supports JPEG and PNG formats.
+// ImageToASCII converts image data to ASCII art. Supports JPEG and PNG formats.
 func ImageToASCII(imageData []byte, config ASCIIConfig) (string, error) {
 	// Decode image from bytes
 	img, _, err := image.Decode(bytes.NewReader(imageData))
@@ -58,6 +68,8 @@ func ImageToASCII(imageData []byte, config ASCIIConfig) (string, error) {
 }
 
 // imageToASCIIFromImage is the core conversion function.
+//
+//nolint:gocyclo // Image to ASCII conversion has high complexity due to multiple pixel processing paths
 func imageToASCIIFromImage(img image.Image, config ASCIIConfig, format string) (string, error) {
 	// Validate configuration
 	if config.Width <= 0 {
@@ -141,9 +153,9 @@ func imageToASCIIFromImage(img image.Image, config ASCIIConfig, format string) (
 // Uses standard luminance formula.
 func calculateBrightness(r, g, b uint32) int {
 	// Convert 16-bit color to 8-bit
-	r8 := uint8(r >> 8)
-	g8 := uint8(g >> 8)
-	b8 := uint8(b >> 8)
+	r8 := uint8(r >> 8) //nolint:gosec // Color values are clamped to valid range
+	g8 := uint8(g >> 8) //nolint:gosec // Color values are clamped to valid range
+	b8 := uint8(b >> 8) //nolint:gosec // Color values are clamped to valid range
 
 	// Use standard brightness calculation
 	// https://en.wikipedia.org/wiki/Relative_luminance

@@ -135,6 +135,7 @@ type AdditionalTest struct {
 	Code string
 }
 
+//nolint:funlen // Main function has many statements due to test generation logic
 func main() {
 	flag.Parse()
 
@@ -215,7 +216,7 @@ func main() {
 
 	// Create output file
 	outputFile := filepath.Join(*outputDir, fmt.Sprintf("%s_test.go", strings.ToLower(cameraID)))
-	f, err := os.Create(outputFile)
+	f, err := os.Create(outputFile) //nolint:gosec // Filename is generated from test data, safe
 	if err != nil {
 		log.Fatalf("Failed to create output file: %v", err)
 	}

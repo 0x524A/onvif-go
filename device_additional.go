@@ -8,7 +8,7 @@ import (
 	"github.com/0x524a/onvif-go/internal/soap"
 )
 
-// ONVIF Specification: GetGeoLocation operation.
+// GetGeoLocation retrieves geographic location information. ONVIF Specification: GetGeoLocation operation.
 func (c *Client) GetGeoLocation(ctx context.Context) ([]LocationEntity, error) {
 	type GetGeoLocationBody struct {
 		XMLName xml.Name `xml:"tds:GetGeoLocation"`
@@ -35,7 +35,7 @@ func (c *Client) GetGeoLocation(ctx context.Context) ([]LocationEntity, error) {
 	return response.Location, nil
 }
 
-// ONVIF Specification: SetGeoLocation operation.
+// SetGeoLocation sets geographic location information. ONVIF Specification: SetGeoLocation operation.
 func (c *Client) SetGeoLocation(ctx context.Context, location []LocationEntity) error {
 	type SetGeoLocationBody struct {
 		XMLName  xml.Name         `xml:"tds:SetGeoLocation"`
@@ -63,7 +63,7 @@ func (c *Client) SetGeoLocation(ctx context.Context, location []LocationEntity) 
 	return nil
 }
 
-// ONVIF Specification: DeleteGeoLocation operation.
+// DeleteGeoLocation deletes geographic location information. ONVIF Specification: DeleteGeoLocation operation.
 func (c *Client) DeleteGeoLocation(ctx context.Context, location []LocationEntity) error {
 	type DeleteGeoLocationBody struct {
 		XMLName  xml.Name         `xml:"tds:DeleteGeoLocation"`
@@ -91,7 +91,7 @@ func (c *Client) DeleteGeoLocation(ctx context.Context, location []LocationEntit
 	return nil
 }
 
-// ONVIF Specification: GetDPAddresses operation.
+// GetDPAddresses retrieves DP (Device Provisioning) addresses. ONVIF Specification: GetDPAddresses operation.
 func (c *Client) GetDPAddresses(ctx context.Context) ([]NetworkHost, error) {
 	type GetDPAddressesBody struct {
 		XMLName xml.Name `xml:"tds:GetDPAddresses"`
@@ -118,7 +118,7 @@ func (c *Client) GetDPAddresses(ctx context.Context) ([]NetworkHost, error) {
 	return response.DPAddress, nil
 }
 
-// ONVIF Specification: SetDPAddresses operation.
+// SetDPAddresses sets DP (Device Provisioning) addresses. ONVIF Specification: SetDPAddresses operation.
 func (c *Client) SetDPAddresses(ctx context.Context, dpAddress []NetworkHost) error {
 	type SetDPAddressesBody struct {
 		XMLName   xml.Name      `xml:"tds:SetDPAddresses"`
@@ -146,7 +146,7 @@ func (c *Client) SetDPAddresses(ctx context.Context, dpAddress []NetworkHost) er
 	return nil
 }
 
-// ONVIF Specification: GetAccessPolicy operation.
+// GetAccessPolicy retrieves access policy information. ONVIF Specification: GetAccessPolicy operation.
 func (c *Client) GetAccessPolicy(ctx context.Context) (*AccessPolicy, error) {
 	type GetAccessPolicyBody struct {
 		XMLName xml.Name `xml:"tds:GetAccessPolicy"`
@@ -173,7 +173,7 @@ func (c *Client) GetAccessPolicy(ctx context.Context) (*AccessPolicy, error) {
 	return &AccessPolicy{PolicyFile: response.PolicyFile}, nil
 }
 
-// ONVIF Specification: SetAccessPolicy operation.
+// SetAccessPolicy sets access policy information. ONVIF Specification: SetAccessPolicy operation.
 func (c *Client) SetAccessPolicy(ctx context.Context, policy *AccessPolicy) error {
 	type SetAccessPolicyBody struct {
 		XMLName    xml.Name    `xml:"tds:SetAccessPolicy"`
@@ -201,29 +201,29 @@ func (c *Client) SetAccessPolicy(ctx context.Context, policy *AccessPolicy) erro
 	return nil
 }
 
-// ONVIF Specification: GetWsdlUrl operation (deprecated).
-func (c *Client) GetWsdlUrl(ctx context.Context) (string, error) {
-	type GetWsdlUrlBody struct {
+// GetWsdlURL retrieves the WSDL URL (deprecated). ONVIF Specification: GetWsdlUrl operation.
+func (c *Client) GetWsdlURL(ctx context.Context) (string, error) {
+	type GetWsdlURLBody struct {
 		XMLName xml.Name `xml:"tds:GetWsdlUrl"`
 		Xmlns   string   `xml:"xmlns:tds,attr"`
 	}
 
-	type GetWsdlUrlResponse struct {
+	type GetWsdlURLResponse struct {
 		XMLName xml.Name `xml:"GetWsdlUrlResponse"`
-		WsdlUrl string   `xml:"WsdlUrl"`
+		WsdlURL string   `xml:"WsdlUrl"`
 	}
 
-	request := GetWsdlUrlBody{
+	request := GetWsdlURLBody{
 		Xmlns: deviceNamespace,
 	}
-	var response GetWsdlUrlResponse
+	var response GetWsdlURLResponse
 
 	username, password := c.GetCredentials()
 	soapClient := soap.NewClient(c.httpClient, username, password)
 
 	if err := soapClient.Call(ctx, c.endpoint, "", request, &response); err != nil {
-		return "", fmt.Errorf("GetWsdlUrl failed: %w", err)
+		return "", fmt.Errorf("GetWsdlURL failed: %w", err)
 	}
 
-	return response.WsdlUrl, nil
+	return response.WsdlURL, nil
 }

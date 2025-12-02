@@ -12,6 +12,8 @@ import (
 const imagingNamespace = "http://www.onvif.org/ver20/imaging/wsdl"
 
 // GetImagingSettings retrieves imaging settings for a video source.
+//
+//nolint:funlen // GetImagingSettings has many statements due to parsing complex imaging settings
 func (c *Client) GetImagingSettings(ctx context.Context, videoSourceToken string) (*ImagingSettings, error) {
 	endpoint := c.imagingEndpoint
 	if endpoint == "" {

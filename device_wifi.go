@@ -8,7 +8,7 @@ import (
 	"github.com/0x524a/onvif-go/internal/soap"
 )
 
-// ONVIF Specification: GetDot11Capabilities operation.
+// GetDot11Capabilities retrieves 802.11 capabilities. ONVIF Specification: GetDot11Capabilities operation.
 func (c *Client) GetDot11Capabilities(ctx context.Context) (*Dot11Capabilities, error) {
 	type GetDot11CapabilitiesBody struct {
 		XMLName xml.Name `xml:"tds:GetDot11Capabilities"`
@@ -35,7 +35,7 @@ func (c *Client) GetDot11Capabilities(ctx context.Context) (*Dot11Capabilities, 
 	return response.Capabilities, nil
 }
 
-// ONVIF Specification: GetDot11Status operation.
+// GetDot11Status retrieves 802.11 status. ONVIF Specification: GetDot11Status operation.
 func (c *Client) GetDot11Status(ctx context.Context, interfaceToken string) (*Dot11Status, error) {
 	type GetDot11StatusBody struct {
 		XMLName        xml.Name `xml:"tds:GetDot11Status"`
@@ -64,7 +64,7 @@ func (c *Client) GetDot11Status(ctx context.Context, interfaceToken string) (*Do
 	return response.Status, nil
 }
 
-// ONVIF Specification: GetDot1XConfiguration operation.
+// GetDot1XConfiguration retrieves an 802.1X configuration. ONVIF Specification: GetDot1XConfiguration operation.
 func (c *Client) GetDot1XConfiguration(ctx context.Context, configToken string) (*Dot1XConfiguration, error) {
 	type GetDot1XConfigurationBody struct {
 		XMLName                 xml.Name `xml:"tds:GetDot1XConfiguration"`
@@ -93,7 +93,7 @@ func (c *Client) GetDot1XConfiguration(ctx context.Context, configToken string) 
 	return response.Dot1XConfiguration, nil
 }
 
-// ONVIF Specification: GetDot1XConfigurations operation.
+// GetDot1XConfigurations retrieves all 802.1X configurations. ONVIF Specification: GetDot1XConfigurations operation.
 func (c *Client) GetDot1XConfigurations(ctx context.Context) ([]*Dot1XConfiguration, error) {
 	type GetDot1XConfigurationsBody struct {
 		XMLName xml.Name `xml:"tds:GetDot1XConfigurations"`
@@ -120,7 +120,7 @@ func (c *Client) GetDot1XConfigurations(ctx context.Context) ([]*Dot1XConfigurat
 	return response.Dot1XConfiguration, nil
 }
 
-// ONVIF Specification: SetDot1XConfiguration operation.
+// SetDot1XConfiguration sets an 802.1X configuration. ONVIF Specification: SetDot1XConfiguration operation.
 func (c *Client) SetDot1XConfiguration(ctx context.Context, config *Dot1XConfiguration) error {
 	type SetDot1XConfigurationBody struct {
 		XMLName            xml.Name            `xml:"tds:SetDot1XConfiguration"`
@@ -148,7 +148,7 @@ func (c *Client) SetDot1XConfiguration(ctx context.Context, config *Dot1XConfigu
 	return nil
 }
 
-// ONVIF Specification: CreateDot1XConfiguration operation.
+// CreateDot1XConfiguration creates an 802.1X configuration. ONVIF Specification: CreateDot1XConfiguration operation.
 func (c *Client) CreateDot1XConfiguration(ctx context.Context, config *Dot1XConfiguration) error {
 	type CreateDot1XConfigurationBody struct {
 		XMLName            xml.Name            `xml:"tds:CreateDot1XConfiguration"`
@@ -176,7 +176,7 @@ func (c *Client) CreateDot1XConfiguration(ctx context.Context, config *Dot1XConf
 	return nil
 }
 
-// ONVIF Specification: DeleteDot1XConfiguration operation.
+// DeleteDot1XConfiguration deletes an 802.1X configuration. ONVIF Specification: DeleteDot1XConfiguration operation.
 func (c *Client) DeleteDot1XConfiguration(ctx context.Context, configToken string) error {
 	type DeleteDot1XConfigurationBody struct {
 		XMLName                 xml.Name `xml:"tds:DeleteDot1XConfiguration"`
@@ -204,6 +204,7 @@ func (c *Client) DeleteDot1XConfiguration(ctx context.Context, configToken strin
 	return nil
 }
 
+// ScanAvailableDot11Networks scans for available 802.11 networks.
 // ONVIF Specification: ScanAvailableDot11Networks operation.
 func (c *Client) ScanAvailableDot11Networks(
 	ctx context.Context,

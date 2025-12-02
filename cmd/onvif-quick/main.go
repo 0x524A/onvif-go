@@ -12,6 +12,16 @@ import (
 	"github.com/0x524a/onvif-go/discovery"
 )
 
+const (
+	defaultUsername   = "admin"
+	defaultTimeout    = 10
+	defaultRetryDelay = 5
+	ptzTimeout        = 30
+	ptzStepSize       = 2
+	ptzSpeed          = 0.5
+	maxBodyPreview    = 200
+)
+
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -81,9 +91,9 @@ func discoverCameras() {
 			fmt.Printf("  %d. %s (%v)\n", i+1, iface.Name, iface.Addresses)
 		}
 
-	fmt.Print("\nEnter interface name or IP: ")
-	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
-	ifaceInput, _ := reader.ReadString('\n')
+		fmt.Print("\nEnter interface name or IP: ")
+		//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
+		ifaceInput, _ := reader.ReadString('\n')
 		ifaceInput = strings.TrimSpace(ifaceInput)
 
 		if ifaceInput != "" {
@@ -97,7 +107,7 @@ func discoverCameras() {
 		opts = &discovery.DiscoverOptions{}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout*time.Second)
 	defer cancel()
 
 	devices, err := discovery.DiscoverWithOptions(ctx, 5*time.Second, opts)
@@ -172,7 +182,7 @@ func connectAndShowInfo() {
 	username, _ := reader.ReadString('\n')
 	username = strings.TrimSpace(username)
 	if username == "" {
-		username = "admin"
+		username = defaultUsername
 	}
 
 	fmt.Print("Password: ")
@@ -223,6 +233,7 @@ func connectAndShowInfo() {
 	}
 }
 
+//nolint:gocyclo // PTZ demo function has high complexity due to multiple control paths
 func ptzDemo() {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -236,7 +247,7 @@ func ptzDemo() {
 	username, _ := reader.ReadString('\n')
 	username = strings.TrimSpace(username)
 	if username == "" {
-		username = "admin"
+		username = defaultUsername
 	}
 
 	fmt.Print("Password: ")
@@ -302,11 +313,11 @@ func ptzDemo() {
 	case "1":
 		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.5, Y: 0.0}}
 	case "2":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: -0.5, Y: 0.0}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: -ptzSpeed, Y: 0.0}}
 	case "3":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: 0.5}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: ptzSpeed}}
 	case "4":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: -0.5}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: -ptzSpeed}}
 	case "5":
 		position = &onvif.PTZVector{PanTilt: &onvif.Vector2D{X: 0.0, Y: 0.0}}
 	default:
@@ -316,7 +327,7 @@ func ptzDemo() {
 	}
 
 	if velocity != nil {
-		timeout := "PT2S"
+		timeout := fmt.Sprintf("PT%dS", ptzStepSize)
 		err = client.ContinuousMove(ctx, profileToken, velocity, &timeout)
 		if err != nil {
 			fmt.Printf("❌ Error: %v\n", err)
@@ -353,7 +364,7 @@ func getStreamURLs() {
 	username, _ := reader.ReadString('\n')
 	username = strings.TrimSpace(username)
 	if username == "" {
-		username = "admin"
+		username = defaultUsername
 	}
 
 	fmt.Print("Password: ")

@@ -106,12 +106,12 @@ type SecurityCapabilities struct {
 // StreamingCapabilities represents streaming capabilities.
 type StreamingCapabilities struct {
 	RTPMulticast bool
-	RTP_TCP      bool
-	RTP_RTSP_TCP bool
+	RTPTCP       bool
+	RTPRTSPTCP   bool
 	Extension    *StreamingCapabilitiesExtension
 }
 
-// Extension types.
+// CapabilitiesExtension represents extension types for capabilities.
 type CapabilitiesExtension struct{}
 type NetworkCapabilitiesExtension struct{}
 type SystemCapabilitiesExtension struct{}
@@ -324,7 +324,7 @@ type ProfileExtension struct{}
 
 // MediaServiceCapabilities represents media service capabilities.
 type MediaServiceCapabilities struct {
-	SnapshotUri             bool
+	SnapshotURI             bool
 	Rotation                bool
 	VideoSourceMode         bool
 	OSD                     bool
@@ -332,8 +332,8 @@ type MediaServiceCapabilities struct {
 	EXICompression          bool
 	MaximumNumberOfProfiles int
 	RTPMulticast            bool
-	RTP_TCP                 bool
-	RTP_RTSP_TCP            bool
+	RTPTCP                  bool
+	RTPRTSPTCP              bool
 }
 
 // VideoEncoderConfigurationOptions represents available options for video encoder configuration.
@@ -995,15 +995,15 @@ type SupportInformation struct {
 	String string
 }
 
-// SystemLogUriList represents system log URIs.
-type SystemLogUriList struct {
-	SystemLog []SystemLogUri
+// SystemLogURIList represents system log URIs.
+type SystemLogURIList struct {
+	SystemLog []SystemLogURI
 }
 
-// SystemLogUri represents system log URI.
-type SystemLogUri struct {
+// SystemLogURI represents system log URI.
+type SystemLogURI struct {
 	Type SystemLogType
-	Uri  string
+	URI  string
 }
 
 // NetworkZeroConfiguration represents zero-configuration.
@@ -1187,7 +1187,7 @@ type StorageConfiguration struct {
 type StorageConfigurationData struct {
 	Type                       string
 	LocalPath                  string
-	StorageUri                 string
+	StorageURI                 string
 	User                       *UserCredential
 	CertPathValidationPolicyID string
 }

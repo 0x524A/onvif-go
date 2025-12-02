@@ -52,15 +52,15 @@ func TestHandleGetStreamURI(t *testing.T) {
 		t.Fatalf("Response is not GetStreamURIResponse, got %T", resp)
 	}
 
-	if streamResp.MediaUri.Uri == "" {
+	if streamResp.MediaURI.URI == "" {
 		t.Error("Stream URI is empty")
 
 		return
 	}
 
 	// URI should contain stream path
-	if !contains(streamResp.MediaUri.Uri, "rtsp://") {
-		t.Errorf("Invalid stream URI format: %s", streamResp.MediaUri.Uri)
+	if !contains(streamResp.MediaURI.URI, "rtsp://") {
+		t.Errorf("Invalid stream URI format: %s", streamResp.MediaURI.URI)
 	}
 }
 
@@ -80,7 +80,7 @@ func TestHandleGetSnapshotURI(t *testing.T) {
 		t.Fatalf("Response is not GetSnapshotURIResponse, got %T", resp)
 	}
 
-	if snapResp.MediaUri.Uri == "" {
+	if snapResp.MediaURI.URI == "" {
 		t.Error("Snapshot URI is empty")
 	}
 }

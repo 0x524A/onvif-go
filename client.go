@@ -2,7 +2,7 @@ package onvif
 
 import (
 	"context"
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec // MD5 used for ONVIF digest authentication
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/hex"
@@ -62,12 +62,14 @@ func WithHTTPClient(httpClient *http.Client) ClientOption {
 	}
 }
 
+// WithInsecureSkipVerify disables TLS certificate verification.
 // WARNING: Only use this for testing or with trusted cameras on private networks.
 func WithInsecureSkipVerify() ClientOption {
 	return func(c *Client) {
 		if transport, ok := c.httpClient.Transport.(*http.Transport); ok {
 			if transport.TLSClientConfig == nil {
-				transport.TLSClientConfig = &tls.Config{}
+				transport.TLSClientConfig = &tls.Config{ //nolint:gosec // InsecureSkipVerify is intentional for testing
+				}
 			}
 			transport.TLSClientConfig.InsecureSkipVerify = true
 		}
@@ -240,6 +242,7 @@ func (c *Client) GetCredentials() (username, password string) {
 	return c.username, c.password
 }
 
+// DownloadFile downloads a file from the given URL with authentication.
 // Supports both Basic and Digest authentication (tries basic first, falls back to digest).
 func (c *Client) DownloadFile(ctx context.Context, downloadURL string) ([]byte, error) {
 	// Try basic auth first
@@ -290,8 +293,9 @@ func (c *Client) downloadWithBasicAuth(ctx context.Context, downloadURL string) 
 		//nolint:errcheck // Error response body preview - ignore read errors
 		bodyPreview, _ := io.ReadAll(resp.Body)
 		bodyStr := string(bodyPreview)
-		if len(bodyStr) > 200 {
-			bodyStr = bodyStr[:200] + "..."
+		const maxBodyPreview = 200
+		if len(bodyStr) > maxBodyPreview {
+			bodyStr = bodyStr[:maxBodyPreview] + "..."
 		}
 
 		// Base error message for programmatic use
@@ -368,8 +372,9 @@ func (c *Client) downloadWithDigestAuth(ctx context.Context, downloadURL string)
 		//nolint:errcheck // Error response body preview - ignore read errors
 		bodyPreview, _ := io.ReadAll(resp.Body)
 		bodyStr := string(bodyPreview)
-		if len(bodyStr) > 200 {
-			bodyStr = bodyStr[:200] + "..."
+		const maxBodyPreview = 200
+		if len(bodyStr) > maxBodyPreview {
+			bodyStr = bodyStr[:maxBodyPreview] + "..."
 		}
 
 		errorMsg := fmt.Sprintf("download failed with status code %d", resp.StatusCode)
@@ -510,7 +515,7 @@ func md5Hash(s string) string {
 
 func md5sum(s string) interface{} {
 	// Use crypto/md5 - import it if not already present
-	h := md5.New()
+	h := md5.New() //nolint:gosec // MD5 required for ONVIF digest auth
 	h.Write([]byte(s))
 
 	return h.Sum(nil)

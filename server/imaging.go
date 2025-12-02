@@ -266,6 +266,8 @@ func (s *Server) HandleGetImagingSettings(body interface{}) (interface{}, error)
 }
 
 // HandleSetImagingSettings handles SetImagingSettings request.
+//
+//nolint:gocyclo // SetImagingSettings has high complexity due to multiple validation and update paths
 func (s *Server) HandleSetImagingSettings(body interface{}) (interface{}, error) {
 	var req SetImagingSettingsRequest
 	if err := unmarshalBody(body, &req); err != nil {

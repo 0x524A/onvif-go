@@ -3,7 +3,7 @@ package soap
 
 import (
 	"bytes"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // SHA1 used for ONVIF digest authentication
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
@@ -123,7 +123,7 @@ func (h *Handler) authenticate(envelope *originsoap.Envelope) bool {
 	}
 
 	// Calculate expected digest
-	hash := sha1.New()
+	hash := sha1.New() //nolint:gosec // SHA1 required for ONVIF digest auth
 	hash.Write(nonce)
 	hash.Write([]byte(token.Created))
 	hash.Write([]byte(h.password))

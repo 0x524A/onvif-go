@@ -17,7 +17,7 @@ type GetDeviceInformationResponse struct {
 	Model           string   `xml:"Model"`
 	FirmwareVersion string   `xml:"FirmwareVersion"`
 	SerialNumber    string   `xml:"SerialNumber"`
-	HardwareId      string   `xml:"HardwareId"`
+	HardwareID      string   `xml:"HardwareId"`
 }
 
 // GetCapabilitiesResponse represents GetCapabilities response.
@@ -110,8 +110,8 @@ type MediaCapabilities struct {
 // StreamingCapabilities represents streaming capabilities.
 type StreamingCapabilities struct {
 	RTPMulticast bool `xml:"RTPMulticast,attr"`
-	RTP_TCP      bool `xml:"RTP_TCP,attr"`
-	RTP_RTSP_TCP bool `xml:"RTP_RTSP_TCP,attr"`
+	RTPTCP       bool `xml:"RTP_TCP,attr"`
+	RTPRTSPTCP   bool `xml:"RTP_RTSP_TCP,attr"`
 }
 
 // PTZCapabilities represents PTZ service capabilities.
@@ -153,7 +153,7 @@ func (s *Server) HandleGetDeviceInformation(body interface{}) (interface{}, erro
 		Model:           s.config.DeviceInfo.Model,
 		FirmwareVersion: s.config.DeviceInfo.FirmwareVersion,
 		SerialNumber:    s.config.DeviceInfo.SerialNumber,
-		HardwareId:      s.config.DeviceInfo.HardwareID,
+		HardwareID:      s.config.DeviceInfo.HardwareID,
 	}, nil
 }
 
@@ -204,8 +204,8 @@ func (s *Server) HandleGetCapabilities(body interface{}) (interface{}, error) {
 			XAddr: baseURL + "/media_service",
 			StreamingCapabilities: &StreamingCapabilities{
 				RTPMulticast: false,
-				RTP_TCP:      true,
-				RTP_RTSP_TCP: true,
+				RTPTCP:       true,
+				RTPRTSPTCP:   true,
 			},
 		},
 	}

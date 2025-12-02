@@ -324,9 +324,9 @@ func TestGetWsdlUrl(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	url, err := client.GetWsdlUrl(ctx)
+	url, err := client.GetWsdlURL(ctx)
 	if err != nil {
-		t.Fatalf("GetWsdlUrl failed: %v", err)
+		t.Fatalf("GetWsdlURL failed: %v", err)
 	}
 
 	expected := "http://192.168.1.100/onvif/device.wsdl"

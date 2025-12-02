@@ -228,6 +228,8 @@ type WDRSettings struct {
 }
 
 // DefaultConfig returns a default server configuration with a multi-lens camera setup.
+//
+//nolint:funlen // DefaultConfig has many statements due to comprehensive default configuration
 func DefaultConfig() *Config {
 	return &Config{
 		Host:     "0.0.0.0",

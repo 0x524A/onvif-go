@@ -14,6 +14,9 @@ import (
 const (
 	// WS-Discovery multicast address.
 	multicastAddr = "239.255.255.250:3702"
+	// UUID generation constants.
+	uuidMod1000  = 1000
+	uuidMod10000 = 10000
 
 	// WS-Discovery probe message.
 	probeTemplate = `<?xml version="1.0" encoding="UTF-8"?>
@@ -136,7 +139,8 @@ func DiscoverWithOptions(ctx context.Context, timeout time.Duration, opts *Disco
 
 	// Collect responses
 	devices := make(map[string]*Device)
-	buffer := make([]byte, 8192)
+	const maxUDPPacketSize = 8192
+	buffer := make([]byte, maxUDPPacketSize)
 
 	// Read responses until timeout or context cancellation
 	for {
@@ -225,12 +229,14 @@ func generateUUID() string {
 	return fmt.Sprintf("%d-%d-%d-%d-%d",
 		time.Now().UnixNano(),
 		time.Now().Unix(),
-		time.Now().UnixNano()%1000,
-		time.Now().Unix()%1000,
-		time.Now().UnixNano()%10000)
+		time.Now().UnixNano()%uuidMod1000,
+		time.Now().Unix()%uuidMod1000,
+		time.Now().UnixNano()%uuidMod10000)
 }
 
 // resolveNetworkInterface resolves a network interface by name or IP address.
+//
+//nolint:gocognit // Network interface resolution has high complexity due to multiple validation paths
 func resolveNetworkInterface(ifaceSpec string) (*net.Interface, error) {
 	// Try to get interface by name (e.g., "eth0", "wlan0")
 	if iface, err := net.InterfaceByName(ifaceSpec); err == nil {

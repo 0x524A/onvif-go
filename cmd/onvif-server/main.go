@@ -17,6 +17,7 @@ var (
 	version = "1.0.0"
 )
 
+//nolint:funlen // Main function has many statements due to server setup and configuration
 func main() {
 	// Define command-line flags
 	host := flag.String("host", "0.0.0.0", "Server host address")

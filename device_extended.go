@@ -623,7 +623,7 @@ func (c *Client) RestoreSystem(ctx context.Context, backupFiles []*BackupFile) e
 // GetSystemUris retrieves URIs from which system information may be downloaded.
 func (c *Client) GetSystemUris(
 	ctx context.Context,
-) (uriList *SystemLogUriList, systemBackupURI, systemLogURI string, err error) {
+) (uriList *SystemLogURIList, systemBackupURI, systemLogURI string, err error) {
 	type GetSystemUris struct {
 		XMLName xml.Name `xml:"tds:GetSystemUris"`
 		Xmlns   string   `xml:"xmlns:tds,attr"`
@@ -634,11 +634,11 @@ func (c *Client) GetSystemUris(
 		SystemLogUris *struct {
 			SystemLog []struct {
 				Type string `xml:"Type"`
-				Uri  string `xml:"Uri"`
+				URI  string `xml:"Uri"`
 			} `xml:"SystemLog"`
 		} `xml:"SystemLogUris"`
-		SupportInfoUri  string `xml:"SupportInfoUri"`
-		SystemBackupUri string `xml:"SystemBackupUri"`
+		SupportInfoURI  string `xml:"SupportInfoUri"`
+		SystemBackupURI string `xml:"SystemBackupUri"`
 	}
 
 	req := GetSystemUris{
@@ -654,18 +654,18 @@ func (c *Client) GetSystemUris(
 		return nil, "", "", fmt.Errorf("GetSystemUris failed: %w", err)
 	}
 
-	var logUris *SystemLogUriList
+	var logUris *SystemLogURIList
 	if resp.SystemLogUris != nil {
-		logUris = &SystemLogUriList{}
+		logUris = &SystemLogURIList{}
 		for _, log := range resp.SystemLogUris.SystemLog {
-			logUris.SystemLog = append(logUris.SystemLog, SystemLogUri{
+			logUris.SystemLog = append(logUris.SystemLog, SystemLogURI{
 				Type: SystemLogType(log.Type),
-				Uri:  log.Uri,
+				URI:  log.URI,
 			})
 		}
 	}
 
-	return logUris, resp.SupportInfoUri, resp.SystemBackupUri, nil
+	return logUris, resp.SupportInfoURI, resp.SystemBackupURI, nil
 }
 
 // GetSystemSupportInformation gets arbitrary device diagnostics information.
@@ -745,7 +745,7 @@ func (c *Client) StartFirmwareUpgrade(
 
 	type StartFirmwareUpgradeResponse struct {
 		XMLName          xml.Name `xml:"StartFirmwareUpgradeResponse"`
-		UploadUri        string   `xml:"UploadUri"`
+		UploadURI        string   `xml:"UploadUri"`
 		UploadDelay      string   `xml:"UploadDelay"`
 		ExpectedDownTime string   `xml:"ExpectedDownTime"`
 	}
@@ -763,7 +763,7 @@ func (c *Client) StartFirmwareUpgrade(
 		return "", "", "", fmt.Errorf("StartFirmwareUpgrade failed: %w", err)
 	}
 
-	return resp.UploadUri, resp.UploadDelay, resp.ExpectedDownTime, nil
+	return resp.UploadURI, resp.UploadDelay, resp.ExpectedDownTime, nil
 }
 
 // StartSystemRestore initiates a system restore from backed up configuration data.
@@ -775,7 +775,7 @@ func (c *Client) StartSystemRestore(ctx context.Context) (uploadURI, expectedDow
 
 	type StartSystemRestoreResponse struct {
 		XMLName          xml.Name `xml:"StartSystemRestoreResponse"`
-		UploadUri        string   `xml:"UploadUri"`
+		UploadURI        string   `xml:"UploadUri"`
 		ExpectedDownTime string   `xml:"ExpectedDownTime"`
 	}
 
@@ -792,5 +792,5 @@ func (c *Client) StartSystemRestore(ctx context.Context) (uploadURI, expectedDow
 		return "", "", fmt.Errorf("StartSystemRestore failed: %w", err)
 	}
 
-	return resp.UploadUri, resp.ExpectedDownTime, nil
+	return resp.UploadURI, resp.ExpectedDownTime, nil
 }
