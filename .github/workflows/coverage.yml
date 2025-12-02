@@ -30,6 +30,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Check coverage percentage
+      id: coverage
       run: |
         if [ -f coverage.out ]; then
           echo "📊 Coverage Report:"
@@ -37,6 +38,7 @@ jobs:
           
           coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Total Coverage: ${coverage}%"
+          echo "percentage=${coverage}" >> $GITHUB_OUTPUT
           
           # Set threshold to 50%
           threshold=50

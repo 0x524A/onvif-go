@@ -2046,6 +2046,8 @@ func (c *Client) GetMetadataConfigurationOptions(ctx context.Context, configurat
 }
 
 // GetAudioOutputConfiguration retrieves audio output configuration
+//
+//nolint:dupl // Similar structure to GetAudioSourceConfiguration but different types and operations
 func (c *Client) GetAudioOutputConfiguration(ctx context.Context, configurationToken string) (*AudioOutputConfiguration, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
