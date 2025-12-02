@@ -369,14 +369,14 @@ func (s *Server) HandleGetVideoSources(body interface{}) (interface{}, error) {
 func unmarshalBody(body interface{}, target interface{}) error {
 	var bodyXML []byte
 	var err error
-	
+
 	// If body is already []byte, use it directly
 	if b, ok := body.([]byte); ok {
 		bodyXML = b
 	} else {
 		bodyXML, err = xml.Marshal(body)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to marshal XML: %w", err)
 		}
 	}
 	return xml.Unmarshal(bodyXML, target)

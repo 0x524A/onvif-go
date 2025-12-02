@@ -18,7 +18,7 @@ linters:
     - unparam
     - gocritic
     - gosec
-    - exportloopref
+    - copyloopvar
     - goconst
     - gocyclo
     - dupl
@@ -34,7 +34,7 @@ linters:
     - errorlint
     - exhaustive
     - godot
-    - goerr113
+    - err113
     - mnd
     - goprintffuncname
     - nlreturn

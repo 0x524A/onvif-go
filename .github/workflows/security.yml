@@ -21,16 +21,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
         with:
           args: '-no-fail -fmt json -out gosec-report.json ./...'
       
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Upload gosec report
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: gosec-report.json
+          name: gosec-report
+          path: gosec-report.json
+          retention-days: 30
+      
+      - name: Display gosec results
+        if: always()
+        run: |
+          if [ -f gosec-report.json ]; then
+            echo "📊 Gosec Security Scan Results:"
+            cat gosec-report.json | jq -r '.Stats // empty' || echo "No stats available"
+            echo ""
+            echo "Issues found:"
+            cat gosec-report.json | jq -r '.Issues[]? | "\(.severity | ascii_upcase): \(.rule_id) - \(.details)"' || echo "No issues found"
+          fi
 
   govulncheck:
     name: Vulnerability Check (govulncheck)
