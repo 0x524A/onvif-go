@@ -127,7 +127,7 @@ func normalizeEndpoint(endpoint string) (string, error) {
 		// Parse as full URL
 		parsedURL, err := url.Parse(endpoint)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to parse endpoint URL: %w", err)
 		}
 		if parsedURL.Host == "" {
 			return "", fmt.Errorf("URL missing host")
@@ -284,9 +284,11 @@ func (c *Client) downloadWithBasicAuth(ctx context.Context, downloadURL string) 
 	if err != nil {
 		return nil, fmt.Errorf("download request failed: %w", err)
 	}
+	//nolint:errcheck // Close error in defer is intentionally ignored
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
+		//nolint:errcheck // Error response body preview - ignore read errors
 		bodyPreview, _ := io.ReadAll(resp.Body)
 		bodyStr := string(bodyPreview)
 		if len(bodyStr) > 200 {
@@ -360,9 +362,11 @@ func (c *Client) downloadWithDigestAuth(ctx context.Context, downloadURL string)
 	if err != nil {
 		return nil, fmt.Errorf("digest auth request failed: %w", err)
 	}
+	//nolint:errcheck // Close error in defer is intentionally ignored
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
+		//nolint:errcheck // Error response body preview - ignore read errors
 		bodyPreview, _ := io.ReadAll(resp.Body)
 		bodyStr := string(bodyPreview)
 		if len(bodyStr) > 200 {
@@ -409,7 +413,7 @@ func (d *digestAuthTransport) RoundTrip(req *http.Request) (*http.Response, erro
 	// First request without auth to get the challenge
 	resp, err := d.transport.RoundTrip(req)
 	if err != nil {
-		return resp, err
+		return resp, fmt.Errorf("transport round trip failed: %w", err)
 	}
 
 	// If we get 401, handle digest auth challenge
@@ -426,11 +430,14 @@ func (d *digestAuthTransport) RoundTrip(req *http.Request) (*http.Response, erro
 
 			// Retry with auth
 			resp, err = d.transport.RoundTrip(newReq)
-			return resp, err
+			if err != nil {
+				return resp, fmt.Errorf("transport round trip with auth failed: %w", err)
+			}
+			return resp, nil
 		}
 	}
 
-	return resp, err
+	return resp, nil
 }
 
 // createDigestAuthHeader creates a digest auth header from the challenge

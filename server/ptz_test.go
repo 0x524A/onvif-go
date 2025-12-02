@@ -110,6 +110,8 @@ func _DisabledTestHandleGetStatus(t *testing.T) {
 }
 
 // TestHandleAbsoluteMove - DISABLED due to SOAP namespace requirements
+//
+//nolint:dupl // Disabled test functions have similar structure
 func _DisabledTestHandleAbsoluteMove(t *testing.T) {
 	config := createTestConfig()
 	server, _ := New(config)
@@ -150,6 +152,8 @@ func _DisabledTestHandleAbsoluteMove(t *testing.T) {
 }
 
 // TestHandleRelativeMove - DISABLED due to SOAP namespace requirements
+//
+//nolint:dupl // Disabled test functions have similar structure
 func _DisabledTestHandleRelativeMove(t *testing.T) {
 	config := createTestConfig()
 	server, _ := New(config)
@@ -190,6 +194,8 @@ func _DisabledTestHandleRelativeMove(t *testing.T) {
 }
 
 // TestHandleContinuousMove - DISABLED due to SOAP namespace requirements
+//
+//nolint:dupl // Disabled test functions have similar structure
 func _DisabledTestHandleContinuousMove(t *testing.T) {
 	config := createTestConfig()
 	server, _ := New(config)

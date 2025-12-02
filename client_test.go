@@ -1293,7 +1293,7 @@ func TestDownloadFileContextCancellation(t *testing.T) {
 
 	_, err = client.DownloadFile(ctx, server.URL)
 	if err == nil {
-		t.Error("DownloadFile() expected error for cancelled context")
+		t.Error("DownloadFile() expected error for canceled context")
 	}
 	if !strings.Contains(err.Error(), "context deadline exceeded") && !strings.Contains(err.Error(), "context canceled") {
 		t.Errorf("Expected context error, got: %v", err)

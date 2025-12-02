@@ -2749,7 +2749,10 @@ func (c *Client) GetAudioSourceConfiguration(ctx context.Context, configurationT
 }
 
 // GetVideoSourceConfigurationOptions retrieves available options for video source configuration
-func (c *Client) GetVideoSourceConfigurationOptions(ctx context.Context, configurationToken, profileToken string) (*VideoSourceConfigurationOptions, error) {
+func (c *Client) GetVideoSourceConfigurationOptions(
+	ctx context.Context,
+	configurationToken, profileToken string,
+) (*VideoSourceConfigurationOptions, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
 		endpoint = c.endpoint
@@ -2809,7 +2812,10 @@ func (c *Client) GetVideoSourceConfigurationOptions(ctx context.Context, configu
 }
 
 // GetAudioSourceConfigurationOptions retrieves available options for audio source configuration
-func (c *Client) GetAudioSourceConfigurationOptions(ctx context.Context, configurationToken, profileToken string) (*AudioSourceConfigurationOptions, error) {
+func (c *Client) GetAudioSourceConfigurationOptions(
+	ctx context.Context,
+	configurationToken, profileToken string,
+) (*AudioSourceConfigurationOptions, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
 		endpoint = c.endpoint
@@ -2854,7 +2860,11 @@ func (c *Client) GetAudioSourceConfigurationOptions(ctx context.Context, configu
 }
 
 // SetVideoSourceConfiguration sets video source configuration
-func (c *Client) SetVideoSourceConfiguration(ctx context.Context, config *VideoSourceConfiguration, forcePersistence bool) error {
+func (c *Client) SetVideoSourceConfiguration(
+	ctx context.Context,
+	config *VideoSourceConfiguration,
+	forcePersistence bool,
+) error {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
 		endpoint = c.endpoint
@@ -2956,7 +2966,10 @@ func (c *Client) SetAudioSourceConfiguration(ctx context.Context, config *AudioS
 }
 
 // GetCompatibleVideoEncoderConfigurations retrieves compatible video encoder configurations for a profile
-func (c *Client) GetCompatibleVideoEncoderConfigurations(ctx context.Context, profileToken string) ([]*VideoEncoderConfiguration, error) {
+func (c *Client) GetCompatibleVideoEncoderConfigurations(
+	ctx context.Context,
+	profileToken string,
+) ([]*VideoEncoderConfiguration, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
 		endpoint = c.endpoint
@@ -3034,7 +3047,10 @@ func (c *Client) GetCompatibleVideoEncoderConfigurations(ctx context.Context, pr
 }
 
 // GetCompatibleVideoSourceConfigurations retrieves compatible video source configurations for a profile
-func (c *Client) GetCompatibleVideoSourceConfigurations(ctx context.Context, profileToken string) ([]*VideoSourceConfiguration, error) {
+func (c *Client) GetCompatibleVideoSourceConfigurations(
+	ctx context.Context,
+	profileToken string,
+) ([]*VideoSourceConfiguration, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
 		endpoint = c.endpoint
@@ -3099,7 +3115,10 @@ func (c *Client) GetCompatibleVideoSourceConfigurations(ctx context.Context, pro
 }
 
 // GetCompatibleAudioEncoderConfigurations retrieves compatible audio encoder configurations for a profile
-func (c *Client) GetCompatibleAudioEncoderConfigurations(ctx context.Context, profileToken string) ([]*AudioEncoderConfiguration, error) {
+func (c *Client) GetCompatibleAudioEncoderConfigurations(
+	ctx context.Context,
+	profileToken string,
+) ([]*AudioEncoderConfiguration, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
 		endpoint = c.endpoint
@@ -3543,7 +3562,10 @@ func (c *Client) GetAudioDecoderConfigurations(ctx context.Context) ([]*AudioDec
 }
 
 // GetAudioDecoderConfiguration retrieves a specific audio decoder configuration
-func (c *Client) GetAudioDecoderConfiguration(ctx context.Context, configurationToken string) (*AudioDecoderConfiguration, error) {
+func (c *Client) GetAudioDecoderConfiguration(
+	ctx context.Context,
+	configurationToken string,
+) (*AudioDecoderConfiguration, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
 		endpoint = c.endpoint
@@ -3671,7 +3693,10 @@ func (c *Client) GetVideoAnalyticsConfigurations(ctx context.Context) ([]*VideoA
 }
 
 // GetVideoAnalyticsConfiguration retrieves a specific video analytics configuration
-func (c *Client) GetVideoAnalyticsConfiguration(ctx context.Context, configurationToken string) (*VideoAnalyticsConfiguration, error) {
+func (c *Client) GetVideoAnalyticsConfiguration(
+	ctx context.Context,
+	configurationToken string,
+) (*VideoAnalyticsConfiguration, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
 		endpoint = c.endpoint
@@ -3801,7 +3826,10 @@ func (c *Client) SetVideoAnalyticsConfiguration(ctx context.Context, config *Vid
 }
 
 // GetVideoAnalyticsConfigurationOptions retrieves available options for video analytics configuration
-func (c *Client) GetVideoAnalyticsConfigurationOptions(ctx context.Context, configurationToken, profileToken string) (*VideoAnalyticsConfigurationOptions, error) {
+func (c *Client) GetVideoAnalyticsConfigurationOptions(
+	ctx context.Context,
+	configurationToken, profileToken string,
+) (*VideoAnalyticsConfigurationOptions, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
 		endpoint = c.endpoint
