@@ -1,12 +1,18 @@
 package onvif
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+)
+
+const (
+	testCertID    = "cert-001"
+	testXMLHeader = `<?xml version="1.0" encoding="UTF-8"?>`
 )
 
 func newMockDeviceCertificatesServer() *httptest.Server {
@@ -166,7 +172,7 @@ func newMockDeviceCertificatesServer() *httptest.Server {
 </SOAP-ENV:Envelope>`
 
 		default:
-			response = `<?xml version="1.0" encoding="UTF-8"?>
+			response = testXMLHeader + `
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope">
   <SOAP-ENV:Body>
     <SOAP-ENV:Fault>
@@ -200,8 +206,8 @@ func TestGetCertificates(t *testing.T) {
 		t.Error("Expected at least one certificate")
 	}
 
-	if certs[0].CertificateID != "cert-001" {
-		t.Errorf("Expected certificate ID 'cert-001', got '%s'", certs[0].CertificateID)
+	if certs[0].CertificateID != testCertID {
+		t.Errorf("Expected certificate ID '%s', got '%s'", testCertID, certs[0].CertificateID)
 	}
 }
 
@@ -415,7 +421,7 @@ func TestGetPkcs10Request(t *testing.T) {
 
 	// Check that data was decoded from base64
 	expectedData := []byte("PKCS#10 CSR DATA")
-	if len(csr.Data) > 0 && string(csr.Data) != string(expectedData) {
+	if len(csr.Data) > 0 && !bytes.Equal(csr.Data, expectedData) {
 		t.Logf("CSR data length: %d, expected: %d", len(csr.Data), len(expectedData))
 		t.Logf("CSR data: %q, expected: %q", string(csr.Data), string(expectedData))
 	}

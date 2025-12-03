@@ -345,13 +345,13 @@ func TestStartFirmwareUpgrade(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	uploadUri, delay, downtime, err := client.StartFirmwareUpgrade(ctx)
+	uploadURI, delay, downtime, err := client.StartFirmwareUpgrade(ctx)
 	if err != nil {
 		t.Fatalf("StartFirmwareUpgrade failed: %v", err)
 	}
 
-	if uploadUri != "http://192.168.1.100/upload" {
-		t.Errorf("Expected upload URI http://192.168.1.100/upload, got %s", uploadUri)
+	if uploadURI != "http://192.168.1.100/upload" {
+		t.Errorf("Expected upload URI http://192.168.1.100/upload, got %s", uploadURI)
 	}
 
 	if delay != "PT5S" {

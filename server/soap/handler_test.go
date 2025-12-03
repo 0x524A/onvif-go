@@ -12,11 +12,15 @@ import (
 	"testing"
 )
 
+const testXMLHeader = `<?xml version="1.0"?>`
+
 func TestNewHandler(t *testing.T) {
 	handler := NewHandler("admin", "password")
 
 	if handler == nil {
 		t.Error("NewHandler returned nil")
+
+		return
 	}
 	if handler.username != "admin" {
 		t.Errorf("Username mismatch: got %s, want admin", handler.username)
@@ -46,7 +50,7 @@ func TestRegisterHandler(t *testing.T) {
 func TestServeHTTPMethodNotAllowed(t *testing.T) {
 	handler := NewHandler("admin", "password")
 
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest("GET", "/", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -65,7 +69,7 @@ func TestServeHTTPValidSOAPRequest(t *testing.T) {
 	})
 
 	// Create SOAP request
-	soapBody := `<?xml version="1.0"?>
+	soapBody := testXMLHeader + `
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <TestAction/>
@@ -125,8 +129,8 @@ func TestExtractAction(t *testing.T) {
 	handler := NewHandler("", "")
 
 	tests := []struct {
-		name         string
-		soapBody     string
+		name           string
+		soapBody       string
 		expectedAction string
 	}{
 		{
@@ -320,7 +324,7 @@ func TestAuthenticateFailsWithWrongPassword(t *testing.T) {
 func TestHandlerWithoutAuthentication(t *testing.T) {
 	handler := NewHandler("", "") // No authentication
 
-	soapBody := `<?xml version="1.0"?>
+	soapBody := testXMLHeader + `
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <TestAction/>

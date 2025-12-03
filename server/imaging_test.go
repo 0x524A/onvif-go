@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+const (
+	exposureModeAuto   = "AUTO"
+	exposureModeManual = "MANUAL"
+)
+
 func TestHandleGetImagingSettings(t *testing.T) {
 	config := createTestConfig()
 	server, _ := New(config)
@@ -24,6 +29,7 @@ func TestHandleGetImagingSettings(t *testing.T) {
 
 	if settingsResp.ImagingSettings == nil {
 		t.Error("ImagingSettings is nil")
+
 		return
 	}
 
@@ -107,6 +113,7 @@ func TestHandleGetOptions(t *testing.T) {
 
 	if optionsResp.ImagingOptions == nil {
 		t.Error("ImagingOptions is nil")
+
 		return
 	}
 
@@ -119,8 +126,11 @@ func TestHandleGetOptions(t *testing.T) {
 	}
 }
 
-// TestHandleMove - DISABLED due to SOAP namespace requirements
+// TestHandleMove - DISABLED due to SOAP namespace requirements.
+//
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleMove(t *testing.T) {
+	t.Helper()
 	config := createTestConfig()
 	server, _ := New(config)
 	videoSourceToken := config.Profiles[0].VideoSource.Token
@@ -146,7 +156,7 @@ func TestImagingSettings(t *testing.T) {
 	contrast := 60.0
 	saturation := 50.0
 	sharpness := 50.0
-	irCutFilter := "AUTO"
+	irCutFilter := exposureModeAuto
 	level := 50.0
 	gain := 50.0
 	exposureTime := 100.0
@@ -165,16 +175,16 @@ func TestImagingSettings(t *testing.T) {
 			Level: &level,
 		},
 		Exposure: &ExposureSettings20{
-			Mode:         "AUTO",
+			Mode:         exposureModeAuto,
 			ExposureTime: &exposureTime,
 			Gain:         &gain,
 		},
 		Focus: &FocusConfiguration20{
-			AutoFocusMode: "AUTO",
+			AutoFocusMode: exposureModeAuto,
 			DefaultSpeed:  &defaultSpeed,
 		},
 		WhiteBalance: &WhiteBalanceSettings20{
-			Mode:   "AUTO",
+			Mode:   exposureModeAuto,
 			CrGain: &crGain,
 			CbGain: &cbGain,
 		},
@@ -202,43 +212,43 @@ func TestImagingSettings(t *testing.T) {
 		t.Errorf("BacklightCompensation mode invalid: %s", settings.BacklightCompensation.Mode)
 	}
 
-	if settings.Exposure != nil && settings.Exposure.Mode != "AUTO" {
+	if settings.Exposure != nil && settings.Exposure.Mode != exposureModeAuto {
 		t.Errorf("Exposure mode invalid: %s", settings.Exposure.Mode)
 	}
 
-	if settings.Focus != nil && settings.Focus.AutoFocusMode != "AUTO" {
+	if settings.Focus != nil && settings.Focus.AutoFocusMode != exposureModeAuto {
 		t.Errorf("Focus mode invalid: %s", settings.Focus.AutoFocusMode)
 	}
 
-	if settings.WhiteBalance.Mode != "AUTO" {
+	if settings.WhiteBalance.Mode != exposureModeAuto {
 		t.Errorf("WhiteBalance mode invalid: %s", settings.WhiteBalance.Mode)
 	}
 }
 
 func TestBacklightCompensation(t *testing.T) {
 	tests := []struct {
-		name      string
-		comp      BacklightCompensation
+		name        string
+		comp        BacklightCompensation
 		expectValid bool
 	}{
 		{
-			name:      "Backlight ON",
-			comp:      BacklightCompensation{Mode: "ON", Level: 50},
+			name:        "Backlight ON",
+			comp:        BacklightCompensation{Mode: "ON", Level: 50},
 			expectValid: true,
 		},
 		{
-			name:      "Backlight OFF",
-			comp:      BacklightCompensation{Mode: "OFF", Level: 0},
+			name:        "Backlight OFF",
+			comp:        BacklightCompensation{Mode: "OFF", Level: 0},
 			expectValid: true,
 		},
 		{
-			name:      "Invalid mode",
-			comp:      BacklightCompensation{Mode: "INVALID", Level: 50},
+			name:        "Invalid mode",
+			comp:        BacklightCompensation{Mode: "INVALID", Level: 50},
 			expectValid: false,
 		},
 		{
-			name:      "Level out of range",
-			comp:      BacklightCompensation{Mode: "ON", Level: 150},
+			name:        "Level out of range",
+			comp:        BacklightCompensation{Mode: "ON", Level: 150},
 			expectValid: false,
 		},
 	}
@@ -256,27 +266,27 @@ func TestBacklightCompensation(t *testing.T) {
 
 func TestExposureSettings(t *testing.T) {
 	tests := []struct {
-		name      string
-		exposure  ExposureSettings
+		name        string
+		exposure    ExposureSettings
 		expectValid bool
 	}{
 		{
 			name: "Valid AUTO exposure",
 			exposure: ExposureSettings{
-				Mode:     "AUTO",
-				Priority: "FrameRate",
+				Mode:        "AUTO",
+				Priority:    "FrameRate",
 				MinExposure: 1,
 				MaxExposure: 10000,
-				Gain: 50,
+				Gain:        50,
 			},
 			expectValid: true,
 		},
 		{
 			name: "Valid MANUAL exposure",
 			exposure: ExposureSettings{
-				Mode:     "MANUAL",
+				Mode:         exposureModeManual,
 				ExposureTime: 100,
-				Gain: 50,
+				Gain:         50,
 			},
 			expectValid: true,
 		},
@@ -291,7 +301,7 @@ func TestExposureSettings(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valid := tt.exposure.Mode == "AUTO" || tt.exposure.Mode == "MANUAL"
+			valid := tt.exposure.Mode == exposureModeAuto || tt.exposure.Mode == exposureModeManual
 			if valid != tt.expectValid {
 				t.Errorf("Exposure validation failed: Mode=%s", tt.exposure.Mode)
 			}
@@ -301,26 +311,26 @@ func TestExposureSettings(t *testing.T) {
 
 func TestFocusSettings(t *testing.T) {
 	tests := []struct {
-		name      string
-		focus     FocusSettings
+		name        string
+		focus       FocusSettings
 		expectValid bool
 	}{
 		{
 			name: "Valid AUTO focus",
 			focus: FocusSettings{
-				AutoFocusMode: "AUTO",
-				DefaultSpeed: 0.5,
-				NearLimit: 0,
-				FarLimit: 1,
+				AutoFocusMode: exposureModeAuto,
+				DefaultSpeed:  0.5,
+				NearLimit:     0,
+				FarLimit:      1,
 			},
 			expectValid: true,
 		},
 		{
 			name: "Valid MANUAL focus",
 			focus: FocusSettings{
-				AutoFocusMode: "MANUAL",
-				DefaultSpeed: 0.5,
-				CurrentPos: 0.5,
+				AutoFocusMode: exposureModeManual,
+				DefaultSpeed:  0.5,
+				CurrentPos:    0.5,
 			},
 			expectValid: true,
 		},
@@ -335,7 +345,7 @@ func TestFocusSettings(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valid := tt.focus.AutoFocusMode == "AUTO" || tt.focus.AutoFocusMode == "MANUAL"
+			valid := tt.focus.AutoFocusMode == exposureModeAuto || tt.focus.AutoFocusMode == exposureModeManual
 			if valid != tt.expectValid {
 				t.Errorf("Focus validation failed: Mode=%s", tt.focus.AutoFocusMode)
 			}
@@ -345,14 +355,14 @@ func TestFocusSettings(t *testing.T) {
 
 func TestWhiteBalanceSettings(t *testing.T) {
 	tests := []struct {
-		name       string
+		name         string
 		whiteBalance WhiteBalanceSettings
-		expectValid bool
+		expectValid  bool
 	}{
 		{
 			name: "Valid AUTO white balance",
 			whiteBalance: WhiteBalanceSettings{
-				Mode: "AUTO",
+				Mode:   exposureModeAuto,
 				CrGain: 128,
 				CbGain: 128,
 			},
@@ -361,7 +371,7 @@ func TestWhiteBalanceSettings(t *testing.T) {
 		{
 			name: "Valid MANUAL white balance",
 			whiteBalance: WhiteBalanceSettings{
-				Mode: "MANUAL",
+				Mode:   "MANUAL",
 				CrGain: 100,
 				CbGain: 120,
 			},
@@ -370,7 +380,7 @@ func TestWhiteBalanceSettings(t *testing.T) {
 		{
 			name: "Gain out of range",
 			whiteBalance: WhiteBalanceSettings{
-				Mode: "AUTO",
+				Mode:   exposureModeAuto,
 				CrGain: 300,
 				CbGain: 128,
 			},
@@ -380,7 +390,7 @@ func TestWhiteBalanceSettings(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			valid := (tt.whiteBalance.Mode == "AUTO" || tt.whiteBalance.Mode == "MANUAL") &&
+			valid := (tt.whiteBalance.Mode == exposureModeAuto || tt.whiteBalance.Mode == exposureModeManual) &&
 				tt.whiteBalance.CrGain >= 0 && tt.whiteBalance.CrGain <= 255 &&
 				tt.whiteBalance.CbGain >= 0 && tt.whiteBalance.CbGain <= 255
 			if valid != tt.expectValid {
@@ -393,23 +403,23 @@ func TestWhiteBalanceSettings(t *testing.T) {
 
 func TestWideDynamicRange(t *testing.T) {
 	tests := []struct {
-		name      string
-		wdr       WDRSettings
+		name        string
+		wdr         WDRSettings
 		expectValid bool
 	}{
 		{
-			name:      "WDR ON",
-			wdr:       WDRSettings{Mode: "ON", Level: 50},
+			name:        "WDR ON",
+			wdr:         WDRSettings{Mode: "ON", Level: 50},
 			expectValid: true,
 		},
 		{
-			name:      "WDR OFF",
-			wdr:       WDRSettings{Mode: "OFF", Level: 0},
+			name:        "WDR OFF",
+			wdr:         WDRSettings{Mode: "OFF", Level: 0},
 			expectValid: true,
 		},
 		{
-			name:      "Invalid mode",
-			wdr:       WDRSettings{Mode: "INVALID", Level: 50},
+			name:        "Invalid mode",
+			wdr:         WDRSettings{Mode: "INVALID", Level: 50},
 			expectValid: false,
 		},
 	}
@@ -509,7 +519,7 @@ func TestSetImagingSettingsEdgeCases(t *testing.T) {
 	}
 
 	resp, err := server.HandleSetImagingSettings(&setReq)
-	
+
 	if err == nil && resp != nil {
 		t.Logf("SetImagingSettings with nil settings succeeded")
 	}

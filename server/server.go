@@ -1,7 +1,9 @@
+// Package server provides ONVIF server implementation for testing and simulation.
 package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -9,7 +11,7 @@ import (
 	"github.com/0x524a/onvif-go/server/soap"
 )
 
-// New creates a new ONVIF server with the given configuration
+// New creates a new ONVIF server with the given configuration.
 func New(config *Config) (*Server, error) {
 	if config == nil {
 		config = DefaultConfig()
@@ -55,10 +57,10 @@ func New(config *Config) (*Server, error) {
 
 		// Initialize imaging state
 		server.imagingState[profile.VideoSource.Token] = &ImagingState{
-			Brightness:  50.0,
-			Contrast:    50.0,
-			Saturation:  50.0,
-			Sharpness:   50.0,
+			Brightness:  50.0, //nolint:mnd // Default imaging value
+			Contrast:    50.0, //nolint:mnd // Default imaging value
+			Saturation:  50.0, //nolint:mnd // Default imaging value
+			Sharpness:   50.0, //nolint:mnd // Default imaging value
 			IrCutFilter: "AUTO",
 			BacklightComp: BacklightCompensation{
 				Mode:  "OFF",
@@ -68,23 +70,23 @@ func New(config *Config) (*Server, error) {
 				Mode:         "AUTO",
 				Priority:     "FrameRate",
 				MinExposure:  1,
-				MaxExposure:  10000,
+				MaxExposure:  10000, //nolint:mnd // Exposure time in microseconds
 				MinGain:      0,
-				MaxGain:      100,
-				ExposureTime: 100,
-				Gain:         50,
+				MaxGain:      100, //nolint:mnd // Gain value
+				ExposureTime: 100, //nolint:mnd // Exposure time
+				Gain:         50,  //nolint:mnd // Gain value
 			},
 			Focus: FocusSettings{
 				AutoFocusMode: "AUTO",
-				DefaultSpeed:  0.5,
+				DefaultSpeed:  0.5, //nolint:mnd // Focus speed
 				NearLimit:     0,
 				FarLimit:      1,
-				CurrentPos:    0.5,
+				CurrentPos:    0.5, //nolint:mnd // Focus position
 			},
 			WhiteBalance: WhiteBalanceSettings{
 				Mode:   "AUTO",
-				CrGain: 128,
-				CbGain: 128,
+				CrGain: 128, //nolint:mnd // White balance gain
+				CbGain: 128, //nolint:mnd // White balance gain
 			},
 			WideDynamicRange: WDRSettings{
 				Mode:  "OFF",
@@ -96,7 +98,7 @@ func New(config *Config) (*Server, error) {
 	return server, nil
 }
 
-// Start starts the ONVIF server
+// Start starts the ONVIF server.
 func (s *Server) Start(ctx context.Context) error {
 	// Create HTTP server
 	mux := http.NewServeMux()
@@ -138,6 +140,7 @@ func (s *Server) Start(ctx context.Context) error {
 			fmt.Printf("📷 Imaging Service: http://%s%s/imaging_service\n", addr, s.config.BasePath)
 		}
 		fmt.Printf("\n🌐 Virtual Camera Profiles:\n")
+		//nolint:gocritic // Range value copy is acceptable for small structs
 		for i, profile := range s.config.Profiles {
 			stream := s.streams[profile.Token]
 			fmt.Printf("   [%d] %s - %s (%dx%d @ %dfps)\n",
@@ -148,7 +151,7 @@ func (s *Server) Start(ctx context.Context) error {
 		}
 		fmt.Printf("\n✅ Server is ready!\n\n")
 
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err
 		}
 	}()
@@ -157,15 +160,21 @@ func (s *Server) Start(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		fmt.Println("\n🛑 Shutting down server...")
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		const shutdownTimeout = 5 // Server shutdown timeout in seconds
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
 		defer cancel()
-		return httpServer.Shutdown(shutdownCtx)
+
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			return fmt.Errorf("server shutdown failed: %w", err)
+		}
+
+		return nil
 	case err := <-errChan:
 		return err
 	}
 }
 
-// registerDeviceService registers the device service handler
+// registerDeviceService registers the device service handler.
 func (s *Server) registerDeviceService(mux *http.ServeMux) {
 	handler := soap.NewHandler(s.config.Username, s.config.Password)
 
@@ -179,7 +188,7 @@ func (s *Server) registerDeviceService(mux *http.ServeMux) {
 	mux.Handle(s.config.BasePath+"/device_service", handler)
 }
 
-// registerMediaService registers the media service handler
+// registerMediaService registers the media service handler.
 func (s *Server) registerMediaService(mux *http.ServeMux) {
 	handler := soap.NewHandler(s.config.Username, s.config.Password)
 
@@ -192,7 +201,7 @@ func (s *Server) registerMediaService(mux *http.ServeMux) {
 	mux.Handle(s.config.BasePath+"/media_service", handler)
 }
 
-// registerPTZService registers the PTZ service handler
+// registerPTZService registers the PTZ service handler.
 func (s *Server) registerPTZService(mux *http.ServeMux) {
 	handler := soap.NewHandler(s.config.Username, s.config.Password)
 
@@ -208,7 +217,7 @@ func (s *Server) registerPTZService(mux *http.ServeMux) {
 	mux.Handle(s.config.BasePath+"/ptz_service", handler)
 }
 
-// registerImagingService registers the imaging service handler
+// registerImagingService registers the imaging service handler.
 func (s *Server) registerImagingService(mux *http.ServeMux) {
 	handler := soap.NewHandler(s.config.Username, s.config.Password)
 
@@ -221,12 +230,13 @@ func (s *Server) registerImagingService(mux *http.ServeMux) {
 	mux.Handle(s.config.BasePath+"/imaging_service", handler)
 }
 
-// handleSnapshot handles HTTP snapshot requests
+// handleSnapshot handles HTTP snapshot requests.
 func (s *Server) handleSnapshot(w http.ResponseWriter, r *http.Request) {
 	// Get profile token from query parameter
 	profileToken := r.URL.Query().Get("profile")
 	if profileToken == "" {
 		http.Error(w, "Missing profile parameter", http.StatusBadRequest)
+
 		return
 	}
 
@@ -235,17 +245,20 @@ func (s *Server) handleSnapshot(w http.ResponseWriter, r *http.Request) {
 	for i := range s.config.Profiles {
 		if s.config.Profiles[i].Token == profileToken {
 			profileCfg = &s.config.Profiles[i]
+
 			break
 		}
 	}
 
 	if profileCfg == nil {
 		http.Error(w, "Profile not found", http.StatusNotFound)
+
 		return
 	}
 
 	if !profileCfg.Snapshot.Enabled {
 		http.Error(w, "Snapshot not supported", http.StatusNotImplemented)
+
 		return
 	}
 
@@ -258,49 +271,53 @@ func (s *Server) handleSnapshot(w http.ResponseWriter, r *http.Request) {
 	// TODO: Generate or capture actual JPEG snapshot
 }
 
-// GetConfig returns the server configuration
+// GetConfig returns the server configuration.
 func (s *Server) GetConfig() *Config {
 	return s.config
 }
 
-// GetStreamConfig returns the stream configuration for a profile
+// GetStreamConfig returns the stream configuration for a profile.
 func (s *Server) GetStreamConfig(profileToken string) (*StreamConfig, bool) {
 	stream, ok := s.streams[profileToken]
+
 	return stream, ok
 }
 
-// UpdateStreamURI updates the RTSP URI for a profile
+// UpdateStreamURI updates the RTSP URI for a profile.
 func (s *Server) UpdateStreamURI(profileToken, uri string) error {
 	stream, ok := s.streams[profileToken]
 	if !ok {
-		return fmt.Errorf("profile not found: %s", profileToken)
+		return fmt.Errorf("%w: %s", ErrProfileNotFound, profileToken)
 	}
 	stream.StreamURI = uri
+
 	return nil
 }
 
-// ListProfiles returns all configured profiles
+// ListProfiles returns all configured profiles.
 func (s *Server) ListProfiles() []ProfileConfig {
 	return s.config.Profiles
 }
 
-// GetPTZState returns the current PTZ state for a profile
+// GetPTZState returns the current PTZ state for a profile.
 func (s *Server) GetPTZState(profileToken string) (*PTZState, bool) {
 	ptzMutex.RLock()
 	defer ptzMutex.RUnlock()
 	state, ok := s.ptzState[profileToken]
+
 	return state, ok
 }
 
-// GetImagingState returns the current imaging state for a video source
+// GetImagingState returns the current imaging state for a video source.
 func (s *Server) GetImagingState(videoSourceToken string) (*ImagingState, bool) {
 	imagingMutex.RLock()
 	defer imagingMutex.RUnlock()
 	state, ok := s.imagingState[videoSourceToken]
+
 	return state, ok
 }
 
-// ServerInfo returns human-readable server information
+// ServerInfo returns human-readable server information.
 func (s *Server) ServerInfo() string {
 	var info string
 	info += "ONVIF Server Configuration\n"
@@ -311,6 +328,7 @@ func (s *Server) ServerInfo() string {
 	info += fmt.Sprintf("\nServer Address: %s:%d\n", s.config.Host, s.config.Port)
 	info += fmt.Sprintf("Base Path: %s\n", s.config.BasePath)
 	info += fmt.Sprintf("\nProfiles (%d):\n", len(s.config.Profiles))
+	//nolint:gocritic // Range value copy is acceptable for small structs
 	for i, profile := range s.config.Profiles {
 		info += fmt.Sprintf("  [%d] %s (%s)\n", i+1, profile.Name, profile.Token)
 		info += fmt.Sprintf("      Video: %dx%d @ %dfps (%s)\n",
@@ -329,5 +347,6 @@ func (s *Server) ServerInfo() string {
 	info += fmt.Sprintf("  PTZ: %v\n", s.config.SupportPTZ)
 	info += fmt.Sprintf("  Imaging: %v\n", s.config.SupportImaging)
 	info += fmt.Sprintf("  Events: %v\n", s.config.SupportEvents)
+
 	return info
 }

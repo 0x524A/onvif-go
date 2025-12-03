@@ -8,9 +8,7 @@ import (
 	"github.com/0x524a/onvif-go/internal/soap"
 )
 
-// GetStorageConfigurations retrieves all storage configurations from the device.
-//
-// ONVIF Specification: GetStorageConfigurations operation
+// GetStorageConfigurations retrieves storage configurations. ONVIF Specification: GetStorageConfigurations operation.
 func (c *Client) GetStorageConfigurations(ctx context.Context) ([]*StorageConfiguration, error) {
 	type GetStorageConfigurationsBody struct {
 		XMLName xml.Name `xml:"tds:GetStorageConfigurations"`
@@ -37,9 +35,7 @@ func (c *Client) GetStorageConfigurations(ctx context.Context) ([]*StorageConfig
 	return response.StorageConfigurations, nil
 }
 
-// GetStorageConfiguration retrieves a specific storage configuration by token.
-//
-// ONVIF Specification: GetStorageConfiguration operation
+// GetStorageConfiguration retrieves a storage configuration. ONVIF Specification: GetStorageConfiguration operation.
 func (c *Client) GetStorageConfiguration(ctx context.Context, token string) (*StorageConfiguration, error) {
 	type GetStorageConfigurationBody struct {
 		XMLName xml.Name `xml:"tds:GetStorageConfiguration"`
@@ -68,9 +64,8 @@ func (c *Client) GetStorageConfiguration(ctx context.Context, token string) (*St
 	return response.StorageConfiguration, nil
 }
 
-// CreateStorageConfiguration creates a new storage configuration.
-//
-// ONVIF Specification: CreateStorageConfiguration operation
+// CreateStorageConfiguration creates a storage configuration.
+// ONVIF Specification: CreateStorageConfiguration operation.
 func (c *Client) CreateStorageConfiguration(ctx context.Context, config *StorageConfiguration) (string, error) {
 	type CreateStorageConfigurationBody struct {
 		XMLName              xml.Name              `xml:"tds:CreateStorageConfiguration"`
@@ -99,9 +94,7 @@ func (c *Client) CreateStorageConfiguration(ctx context.Context, config *Storage
 	return response.Token, nil
 }
 
-// SetStorageConfiguration updates an existing storage configuration.
-//
-// ONVIF Specification: SetStorageConfiguration operation
+// SetStorageConfiguration sets a storage configuration. ONVIF Specification: SetStorageConfiguration operation.
 func (c *Client) SetStorageConfiguration(ctx context.Context, config *StorageConfiguration) error {
 	type SetStorageConfigurationBody struct {
 		XMLName              xml.Name              `xml:"tds:SetStorageConfiguration"`
@@ -130,8 +123,7 @@ func (c *Client) SetStorageConfiguration(ctx context.Context, config *StorageCon
 }
 
 // DeleteStorageConfiguration deletes a storage configuration.
-//
-// ONVIF Specification: DeleteStorageConfiguration operation
+// ONVIF Specification: DeleteStorageConfiguration operation.
 func (c *Client) DeleteStorageConfiguration(ctx context.Context, token string) error {
 	type DeleteStorageConfigurationBody struct {
 		XMLName xml.Name `xml:"tds:DeleteStorageConfiguration"`
@@ -159,9 +151,7 @@ func (c *Client) DeleteStorageConfiguration(ctx context.Context, token string) e
 	return nil
 }
 
-// SetHashingAlgorithm sets the hashing algorithm for password storage.
-//
-// ONVIF Specification: SetHashingAlgorithm operation
+// SetHashingAlgorithm sets the hashing algorithm. ONVIF Specification: SetHashingAlgorithm operation.
 func (c *Client) SetHashingAlgorithm(ctx context.Context, algorithm string) error {
 	type SetHashingAlgorithmBody struct {
 		XMLName   xml.Name `xml:"tds:SetHashingAlgorithm"`

@@ -12,6 +12,16 @@ import (
 	"github.com/0x524a/onvif-go/discovery"
 )
 
+const (
+	defaultUsername   = "admin"
+	defaultTimeout    = 10
+	defaultRetryDelay = 5
+	ptzTimeout        = 30
+	ptzStepSize       = 2
+	ptzSpeed          = 0.5
+	maxBodyPreview    = 200
+)
+
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -29,6 +39,7 @@ func main() {
 		fmt.Println("0. Exit")
 		fmt.Print("\nChoice: ")
 
+		//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 		input, _ := reader.ReadString('\n')
 		choice := strings.TrimSpace(input)
 
@@ -45,6 +56,7 @@ func main() {
 			getStreamURLs()
 		case "0", "q", "quit":
 			fmt.Println("Goodbye! 👋")
+
 			return
 		default:
 			fmt.Println("Invalid choice. Please try again.")
@@ -60,6 +72,7 @@ func discoverCameras() {
 
 	// Ask if user wants to use a specific interface
 	fmt.Print("Use specific network interface? (y/n) [n]: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	useInterface, _ := reader.ReadString('\n')
 	useInterface = strings.ToLower(strings.TrimSpace(useInterface))
 
@@ -69,6 +82,7 @@ func discoverCameras() {
 		interfaces, err := discovery.ListNetworkInterfaces()
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
+
 			return
 		}
 
@@ -78,6 +92,7 @@ func discoverCameras() {
 		}
 
 		fmt.Print("\nEnter interface name or IP: ")
+		//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 		ifaceInput, _ := reader.ReadString('\n')
 		ifaceInput = strings.TrimSpace(ifaceInput)
 
@@ -92,17 +107,19 @@ func discoverCameras() {
 		opts = &discovery.DiscoverOptions{}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout*time.Second)
 	defer cancel()
 
-	devices, err := discovery.DiscoverWithOptions(ctx, 5*time.Second, opts)
+	devices, err := discovery.DiscoverWithOptions(ctx, defaultRetryDelay*time.Second, opts)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
 	if len(devices) == 0 {
 		fmt.Println("No cameras found")
+
 		return
 	}
 
@@ -119,11 +136,13 @@ func listNetworkInterfaces() {
 	interfaces, err := discovery.ListNetworkInterfaces()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
+
 		return
 	}
 
 	if len(interfaces) == 0 {
 		fmt.Println("No network interfaces found")
+
 		return
 	}
 
@@ -154,17 +173,20 @@ func connectAndShowInfo() {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Camera IP: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	ip, _ := reader.ReadString('\n')
 	ip = strings.TrimSpace(ip)
 
 	fmt.Print("Username [admin]: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	username, _ := reader.ReadString('\n')
 	username = strings.TrimSpace(username)
 	if username == "" {
-		username = "admin"
+		username = defaultUsername
 	}
 
 	fmt.Print("Password: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	password, _ := reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 
@@ -174,10 +196,11 @@ func connectAndShowInfo() {
 	client, err := onvif.NewClient(
 		endpoint,
 		onvif.WithCredentials(username, password),
-		onvif.WithTimeout(30*time.Second),
+		onvif.WithTimeout(ptzTimeout*time.Second),
 	)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -187,6 +210,7 @@ func connectAndShowInfo() {
 	info, err := client.GetDeviceInformation(ctx)
 	if err != nil {
 		fmt.Printf("❌ Connection failed: %v\n", err)
+
 		return
 	}
 
@@ -195,7 +219,8 @@ func connectAndShowInfo() {
 	fmt.Printf("🔧 Firmware: %s\n", info.FirmwareVersion)
 
 	// Initialize and get profiles
-	_ = client.Initialize(ctx) // Ignore initialization errors, we'll catch them on GetProfiles
+	//nolint:errcheck // Ignore initialization errors, we'll catch them on GetProfiles
+	_ = client.Initialize(ctx)
 	profiles, err := client.GetProfiles(ctx)
 	if err == nil && len(profiles) > 0 {
 		fmt.Printf("📺 %d profile(s) available\n", len(profiles))
@@ -208,21 +233,24 @@ func connectAndShowInfo() {
 	}
 }
 
-func ptzDemo() {
+func ptzDemo() { //nolint:funlen,gocyclo // Many statements and high complexity due to user interaction
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Camera IP: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	ip, _ := reader.ReadString('\n')
 	ip = strings.TrimSpace(ip)
 
 	fmt.Print("Username [admin]: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	username, _ := reader.ReadString('\n')
 	username = strings.TrimSpace(username)
 	if username == "" {
-		username = "admin"
+		username = defaultUsername
 	}
 
 	fmt.Print("Password: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	password, _ := reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 
@@ -234,15 +262,18 @@ func ptzDemo() {
 	)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
 	ctx := context.Background()
-	_ = client.Initialize(ctx) // Ignore initialization errors, we'll catch them on GetProfiles
+	//nolint:errcheck // Ignore initialization errors, we'll catch them on GetProfiles
+	_ = client.Initialize(ctx)
 
 	profiles, err := client.GetProfiles(ctx)
 	if err != nil || len(profiles) == 0 {
 		fmt.Println("❌ No profiles found")
+
 		return
 	}
 
@@ -252,6 +283,7 @@ func ptzDemo() {
 	status, err := client.GetStatus(ctx, profileToken)
 	if err != nil {
 		fmt.Printf("❌ PTZ not supported: %v\n", err)
+
 		return
 	}
 
@@ -269,6 +301,7 @@ func ptzDemo() {
 	fmt.Println("5. Go to center")
 	fmt.Print("Choice: ")
 
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	choice, _ := reader.ReadString('\n')
 	choice = strings.TrimSpace(choice)
 
@@ -277,34 +310,38 @@ func ptzDemo() {
 
 	switch choice {
 	case "1":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.5, Y: 0.0}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: ptzSpeed, Y: 0.0}}
 	case "2":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: -0.5, Y: 0.0}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: -ptzSpeed, Y: 0.0}}
 	case "3":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: 0.5}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: ptzSpeed}}
 	case "4":
-		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: -0.5}}
+		velocity = &onvif.PTZSpeed{PanTilt: &onvif.Vector2D{X: 0.0, Y: -ptzSpeed}}
 	case "5":
 		position = &onvif.PTZVector{PanTilt: &onvif.Vector2D{X: 0.0, Y: 0.0}}
 	default:
 		fmt.Println("Invalid choice")
+
 		return
 	}
 
 	if velocity != nil {
-		timeout := "PT2S"
+		timeout := fmt.Sprintf("PT%dS", ptzStepSize)
 		err = client.ContinuousMove(ctx, profileToken, velocity, &timeout)
 		if err != nil {
 			fmt.Printf("❌ Error: %v\n", err)
+
 			return
 		}
 		fmt.Println("✅ Moving for 2 seconds...")
-		time.Sleep(2 * time.Second)
-		_ = client.Stop(ctx, profileToken, true, false) // Stop PTZ movement
+		time.Sleep(ptzStepSize * time.Second)
+		//nolint:errcheck // Stop error is not critical for demo
+		_ = client.Stop(ctx, profileToken, true, false)
 	} else if position != nil {
 		err = client.AbsoluteMove(ctx, profileToken, position, nil)
 		if err != nil {
 			fmt.Printf("❌ Error: %v\n", err)
+
 			return
 		}
 		fmt.Println("✅ Moving to center...")
@@ -317,17 +354,20 @@ func getStreamURLs() {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Camera IP: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	ip, _ := reader.ReadString('\n')
 	ip = strings.TrimSpace(ip)
 
 	fmt.Print("Username [admin]: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	username, _ := reader.ReadString('\n')
 	username = strings.TrimSpace(username)
 	if username == "" {
-		username = "admin"
+		username = defaultUsername
 	}
 
 	fmt.Print("Password: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	password, _ := reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 
@@ -339,20 +379,24 @@ func getStreamURLs() {
 	)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
 	ctx := context.Background()
-	_ = client.Initialize(ctx) // Ignore initialization errors, we'll catch them on GetProfiles
+	//nolint:errcheck // Ignore initialization errors, we'll catch them on GetProfiles
+	_ = client.Initialize(ctx)
 
 	profiles, err := client.GetProfiles(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
 	if len(profiles) == 0 {
 		fmt.Println("❌ No profiles found")
+
 		return
 	}
 

@@ -171,16 +171,18 @@ func main() {
 	if len(capture.Exchanges) > 0 {
 		// Try to parse device info from response
 		for _, ex := range capture.Exchanges {
-			if strings.Contains(ex.RequestBody, "GetDeviceInformation") {
-				// Extract manufacturer and model from response
-				manufacturer := extractXMLValue(ex.ResponseBody, "Manufacturer")
-				model := extractXMLValue(ex.ResponseBody, "Model")
-				firmware := extractXMLValue(ex.ResponseBody, "FirmwareVersion")
-				if manufacturer != "" && model != "" {
-					cameraDesc = fmt.Sprintf("%s %s (Firmware: %s)", manufacturer, model, firmware)
-				}
-				break
+			if !strings.Contains(ex.RequestBody, "GetDeviceInformation") {
+				continue
 			}
+			// Extract manufacturer and model from response
+			manufacturer := extractXMLValue(ex.ResponseBody, "Manufacturer")
+			model := extractXMLValue(ex.ResponseBody, "Model")
+			firmware := extractXMLValue(ex.ResponseBody, "FirmwareVersion")
+			if manufacturer != "" && model != "" {
+				cameraDesc = fmt.Sprintf("%s %s (Firmware: %s)", manufacturer, model, firmware)
+			}
+
+			break
 		}
 	}
 
@@ -213,13 +215,17 @@ func main() {
 
 	// Create output file
 	outputFile := filepath.Join(*outputDir, fmt.Sprintf("%s_test.go", strings.ToLower(cameraID)))
-	f, err := os.Create(outputFile)
+	f, err := os.Create(outputFile) //nolint:gosec // Filename is generated from test data, safe
 	if err != nil {
 		log.Fatalf("Failed to create output file: %v", err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	if err := tmpl.Execute(f, testData); err != nil {
+		_ = f.Close()
+		//nolint:gocritic // Fatalf exits, defer won't run - this is acceptable
 		log.Fatalf("Failed to execute template: %v", err)
 	}
 

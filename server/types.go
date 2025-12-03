@@ -7,7 +7,30 @@ import (
 	"github.com/0x524a/onvif-go"
 )
 
-// Config represents the ONVIF server configuration
+const (
+	defaultPort       = 8080
+	defaultTimeoutSec = 30
+	defaultWidth      = 1920
+	defaultHeight     = 1080
+	defaultFramerate  = 30
+	defaultQuality    = 80
+	defaultBitrate    = 4096
+	maxPan            = 180
+	maxTilt           = 90
+	defaultPTZSpeed   = 0.5
+	mediumWidth       = 1280
+	mediumHeight      = 720
+	mediumQuality     = 75
+	highQuality       = 85
+	mediumBitrate     = 2048
+	lowFramerate      = 25
+	highBitrate       = 6144
+	maxZoom           = 3
+	lowPTZSpeed       = 0.3
+	presetZoom        = 2
+)
+
+// Config represents the ONVIF server configuration.
 type Config struct {
 	// Server settings
 	Host     string        // Bind address (e.g., "0.0.0.0")
@@ -31,7 +54,7 @@ type Config struct {
 	SupportEvents  bool
 }
 
-// DeviceInfo contains device identification information
+// DeviceInfo contains device identification information.
 type DeviceInfo struct {
 	Manufacturer    string
 	Model           string
@@ -40,7 +63,7 @@ type DeviceInfo struct {
 	HardwareID      string
 }
 
-// ProfileConfig represents a camera profile configuration
+// ProfileConfig represents a camera profile configuration.
 type ProfileConfig struct {
 	Token        string              // Profile token (unique identifier)
 	Name         string              // Profile name
@@ -52,7 +75,7 @@ type ProfileConfig struct {
 	Snapshot     SnapshotConfig      // Snapshot configuration
 }
 
-// VideoSourceConfig represents video source configuration
+// VideoSourceConfig represents video source configuration.
 type VideoSourceConfig struct {
 	Token      string // Video source token
 	Name       string // Video source name
@@ -61,7 +84,7 @@ type VideoSourceConfig struct {
 	Bounds     Bounds
 }
 
-// AudioSourceConfig represents audio source configuration
+// AudioSourceConfig represents audio source configuration.
 type AudioSourceConfig struct {
 	Token      string // Audio source token
 	Name       string // Audio source name
@@ -69,7 +92,7 @@ type AudioSourceConfig struct {
 	Bitrate    int    // Bitrate in kbps
 }
 
-// VideoEncoderConfig represents video encoder configuration
+// VideoEncoderConfig represents video encoder configuration.
 type VideoEncoderConfig struct {
 	Encoding   string     // JPEG, H264, H265, MPEG4
 	Resolution Resolution // Video resolution
@@ -79,14 +102,14 @@ type VideoEncoderConfig struct {
 	GovLength  int        // GOP length
 }
 
-// AudioEncoderConfig represents audio encoder configuration
+// AudioEncoderConfig represents audio encoder configuration.
 type AudioEncoderConfig struct {
 	Encoding   string // G711, G726, AAC
 	Bitrate    int    // Bitrate in kbps
 	SampleRate int    // Sample rate in Hz
 }
 
-// PTZConfig represents PTZ configuration
+// PTZConfig represents PTZ configuration.
 type PTZConfig struct {
 	NodeToken          string   // PTZ node token
 	PanRange           Range    // Pan range in degrees
@@ -99,20 +122,20 @@ type PTZConfig struct {
 	Presets            []Preset // Predefined presets
 }
 
-// SnapshotConfig represents snapshot configuration
+// SnapshotConfig represents snapshot configuration.
 type SnapshotConfig struct {
 	Enabled    bool       // Whether snapshots are supported
 	Resolution Resolution // Snapshot resolution
 	Quality    float64    // JPEG quality (0-100)
 }
 
-// Resolution represents video resolution
+// Resolution represents video resolution.
 type Resolution struct {
 	Width  int
 	Height int
 }
 
-// Bounds represents video bounds
+// Bounds represents video bounds.
 type Bounds struct {
 	X      int
 	Y      int
@@ -120,41 +143,41 @@ type Bounds struct {
 	Height int
 }
 
-// Range represents a numeric range
+// Range represents a numeric range.
 type Range struct {
 	Min float64
 	Max float64
 }
 
-// PTZSpeed represents PTZ movement speed
+// PTZSpeed represents PTZ movement speed.
 type PTZSpeed struct {
 	Pan  float64 // Pan speed (-1.0 to 1.0)
 	Tilt float64 // Tilt speed (-1.0 to 1.0)
 	Zoom float64 // Zoom speed (-1.0 to 1.0)
 }
 
-// Preset represents a PTZ preset position
+// Preset represents a PTZ preset position.
 type Preset struct {
 	Token    string      // Preset token
 	Name     string      // Preset name
 	Position PTZPosition // Position
 }
 
-// PTZPosition represents PTZ position
+// PTZPosition represents PTZ position.
 type PTZPosition struct {
 	Pan  float64 // Pan position
 	Tilt float64 // Tilt position
 	Zoom float64 // Zoom position
 }
 
-// StreamConfig represents an RTSP stream configuration
+// StreamConfig represents an RTSP stream configuration.
 type StreamConfig struct {
 	ProfileToken string // Associated profile token
 	RTSPPath     string // RTSP path (e.g., "/stream1")
 	StreamURI    string // Full RTSP URI
 }
 
-// Server represents the ONVIF server
+// Server represents the ONVIF server.
 type Server struct {
 	config       *Config
 	streams      map[string]*StreamConfig // Profile token -> stream config
@@ -163,7 +186,7 @@ type Server struct {
 	systemTime   time.Time
 }
 
-// PTZState represents the current PTZ state
+// PTZState represents the current PTZ state.
 type PTZState struct {
 	Position   PTZPosition
 	Moving     bool
@@ -173,7 +196,7 @@ type PTZState struct {
 	LastUpdate time.Time
 }
 
-// ImagingState represents the current imaging settings state
+// ImagingState represents the current imaging settings state.
 type ImagingState struct {
 	Brightness       float64
 	Contrast         float64
@@ -187,13 +210,13 @@ type ImagingState struct {
 	IrCutFilter      string // ON, OFF, AUTO
 }
 
-// BacklightCompensation represents backlight compensation settings
+// BacklightCompensation represents backlight compensation settings.
 type BacklightCompensation struct {
 	Mode  string  // OFF, ON
 	Level float64 // 0-100
 }
 
-// ExposureSettings represents exposure settings
+// ExposureSettings represents exposure settings.
 type ExposureSettings struct {
 	Mode         string // AUTO, MANUAL
 	Priority     string // LowNoise, FrameRate
@@ -205,7 +228,7 @@ type ExposureSettings struct {
 	Gain         float64
 }
 
-// FocusSettings represents focus settings
+// FocusSettings represents focus settings.
 type FocusSettings struct {
 	AutoFocusMode string // AUTO, MANUAL
 	DefaultSpeed  float64
@@ -214,26 +237,28 @@ type FocusSettings struct {
 	CurrentPos    float64
 }
 
-// WhiteBalanceSettings represents white balance settings
+// WhiteBalanceSettings represents white balance settings.
 type WhiteBalanceSettings struct {
 	Mode   string // AUTO, MANUAL
 	CrGain float64
 	CbGain float64
 }
 
-// WDRSettings represents wide dynamic range settings
+// WDRSettings represents wide dynamic range settings.
 type WDRSettings struct {
 	Mode  string  // OFF, ON
 	Level float64 // 0-100
 }
 
-// DefaultConfig returns a default server configuration with a multi-lens camera setup
+// DefaultConfig returns a default server configuration with a multi-lens camera setup.
+//
+//nolint:funlen // DefaultConfig has many statements due to comprehensive default configuration
 func DefaultConfig() *Config {
 	return &Config{
 		Host:     "0.0.0.0",
-		Port:     8080,
+		Port:     defaultPort,
 		BasePath: "/onvif",
-		Timeout:  30 * time.Second,
+		Timeout:  defaultTimeoutSec * time.Second,
 		DeviceInfo: DeviceInfo{
 			Manufacturer:    "onvif-go",
 			Model:           "Virtual Multi-Lens Camera",
@@ -253,36 +278,41 @@ func DefaultConfig() *Config {
 				VideoSource: VideoSourceConfig{
 					Token:      "video_source_0",
 					Name:       "Main Camera",
-					Resolution: Resolution{Width: 1920, Height: 1080},
-					Framerate:  30,
-					Bounds:     Bounds{X: 0, Y: 0, Width: 1920, Height: 1080},
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Framerate:  defaultFramerate,
+					Bounds:     Bounds{X: 0, Y: 0, Width: defaultWidth, Height: defaultHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
 					Encoding:   "H264",
-					Resolution: Resolution{Width: 1920, Height: 1080},
-					Quality:    80,
-					Framerate:  30,
-					Bitrate:    4096,
-					GovLength:  30,
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Quality:    defaultQuality,
+					Framerate:  defaultFramerate,
+					Bitrate:    defaultBitrate,
+					GovLength:  defaultFramerate,
 				},
 				PTZ: &PTZConfig{
-					NodeToken:          "ptz_node_0",
-					PanRange:           Range{Min: -180, Max: 180},
-					TiltRange:          Range{Min: -90, Max: 90},
-					ZoomRange:          Range{Min: 0, Max: 1},
-					DefaultSpeed:       PTZSpeed{Pan: 0.5, Tilt: 0.5, Zoom: 0.5},
+					NodeToken: "ptz_node_0",
+					PanRange:  Range{Min: -maxPan, Max: maxPan},
+					TiltRange: Range{Min: -maxTilt, Max: maxTilt},
+					ZoomRange: Range{Min: 0, Max: 1},
+					DefaultSpeed: PTZSpeed{
+						Pan: defaultPTZSpeed, Tilt: defaultPTZSpeed, Zoom: defaultPTZSpeed,
+					},
 					SupportsContinuous: true,
 					SupportsAbsolute:   true,
 					SupportsRelative:   true,
 					Presets: []Preset{
 						{Token: "preset_0", Name: "Home", Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
-						{Token: "preset_1", Name: "Entrance", Position: PTZPosition{Pan: -45, Tilt: -10, Zoom: 0.5}},
+						{
+							Token: "preset_1", Name: "Entrance",
+							Position: PTZPosition{Pan: -45, Tilt: -10, Zoom: defaultPTZSpeed},
+						},
 					},
 				},
 				Snapshot: SnapshotConfig{
 					Enabled:    true,
-					Resolution: Resolution{Width: 1920, Height: 1080},
-					Quality:    85,
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Quality:    highQuality,
 				},
 			},
 			{
@@ -291,22 +321,22 @@ func DefaultConfig() *Config {
 				VideoSource: VideoSourceConfig{
 					Token:      "video_source_1",
 					Name:       "Wide Angle Camera",
-					Resolution: Resolution{Width: 1280, Height: 720},
-					Framerate:  30,
-					Bounds:     Bounds{X: 0, Y: 0, Width: 1280, Height: 720},
+					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight},
+					Framerate:  defaultFramerate,
+					Bounds:     Bounds{X: 0, Y: 0, Width: mediumWidth, Height: mediumHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
 					Encoding:   "H264",
-					Resolution: Resolution{Width: 1280, Height: 720},
-					Quality:    75,
-					Framerate:  30,
-					Bitrate:    2048,
-					GovLength:  30,
+					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight},
+					Quality:    mediumQuality,
+					Framerate:  defaultFramerate,
+					Bitrate:    mediumBitrate,
+					GovLength:  defaultFramerate,
 				},
 				Snapshot: SnapshotConfig{
 					Enabled:    true,
-					Resolution: Resolution{Width: 1280, Height: 720},
-					Quality:    80,
+					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight},
+					Quality:    defaultQuality,
 				},
 			},
 			{
@@ -315,43 +345,48 @@ func DefaultConfig() *Config {
 				VideoSource: VideoSourceConfig{
 					Token:      "video_source_2",
 					Name:       "Telephoto Camera",
-					Resolution: Resolution{Width: 1920, Height: 1080},
-					Framerate:  25,
-					Bounds:     Bounds{X: 0, Y: 0, Width: 1920, Height: 1080},
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Framerate:  lowFramerate,
+					Bounds:     Bounds{X: 0, Y: 0, Width: defaultWidth, Height: defaultHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
 					Encoding:   "H264",
-					Resolution: Resolution{Width: 1920, Height: 1080},
-					Quality:    85,
-					Framerate:  25,
-					Bitrate:    6144,
-					GovLength:  25,
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Quality:    highQuality,
+					Framerate:  lowFramerate,
+					Bitrate:    highBitrate,
+					GovLength:  lowFramerate,
 				},
 				PTZ: &PTZConfig{
-					NodeToken:          "ptz_node_2",
-					PanRange:           Range{Min: -180, Max: 180},
-					TiltRange:          Range{Min: -90, Max: 90},
-					ZoomRange:          Range{Min: 0, Max: 3},
-					DefaultSpeed:       PTZSpeed{Pan: 0.3, Tilt: 0.3, Zoom: 0.3},
+					NodeToken: "ptz_node_2",
+					PanRange:  Range{Min: -maxPan, Max: maxPan},
+					TiltRange: Range{Min: -maxTilt, Max: maxTilt},
+					ZoomRange: Range{Min: 0, Max: maxZoom},
+					DefaultSpeed: PTZSpeed{
+						Pan: lowPTZSpeed, Tilt: lowPTZSpeed, Zoom: lowPTZSpeed,
+					},
 					SupportsContinuous: true,
 					SupportsAbsolute:   true,
 					SupportsRelative:   true,
 					Presets: []Preset{
 						{Token: "preset_2_0", Name: "Home", Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
-						{Token: "preset_2_1", Name: "Zoom In", Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 2}},
+						{
+							Token: "preset_2_1", Name: "Zoom In",
+							Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: presetZoom},
+						},
 					},
 				},
 				Snapshot: SnapshotConfig{
 					Enabled:    true,
-					Resolution: Resolution{Width: 1920, Height: 1080},
-					Quality:    90,
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Quality:    highQuality,
 				},
 			},
 		},
 	}
 }
 
-// ServiceEndpoints returns the service endpoint URLs
+// ServiceEndpoints returns the service endpoint URLs.
 func (c *Config) ServiceEndpoints(host string) map[string]string {
 	if host == "" {
 		host = c.Host
@@ -360,8 +395,9 @@ func (c *Config) ServiceEndpoints(host string) map[string]string {
 		}
 	}
 
-	baseURL := ""
-	if c.Port == 80 {
+	var baseURL string
+	const httpPort = 80
+	if c.Port == httpPort {
 		baseURL = "http://" + host + c.BasePath
 	} else {
 		// Import fmt at the top to use Sprintf
@@ -385,7 +421,7 @@ func (c *Config) ServiceEndpoints(host string) map[string]string {
 	return endpoints
 }
 
-// ToONVIFProfile converts a ProfileConfig to an ONVIF Profile
+// ToONVIFProfile converts a ProfileConfig to an ONVIF Profile.
 func (p *ProfileConfig) ToONVIFProfile() *onvif.Profile {
 	profile := &onvif.Profile{
 		Token: p.Token,

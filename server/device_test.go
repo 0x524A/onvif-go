@@ -20,15 +20,15 @@ func TestHandleGetDeviceInformation(t *testing.T) {
 	}
 
 	tests := []struct {
-		name  string
-		got   string
-		want  string
+		name string
+		got  string
+		want string
 	}{
 		{"Manufacturer", deviceResp.Manufacturer, config.DeviceInfo.Manufacturer},
 		{"Model", deviceResp.Model, config.DeviceInfo.Model},
 		{"FirmwareVersion", deviceResp.FirmwareVersion, config.DeviceInfo.FirmwareVersion},
 		{"SerialNumber", deviceResp.SerialNumber, config.DeviceInfo.SerialNumber},
-		{"HardwareId", deviceResp.HardwareId, config.DeviceInfo.HardwareID},
+		{"HardwareID", deviceResp.HardwareID, config.DeviceInfo.HardwareID},
 	}
 
 	for _, tt := range tests {
@@ -54,6 +54,7 @@ func TestHandleGetCapabilities(t *testing.T) {
 
 	if capsResp.Capabilities == nil {
 		t.Error("Capabilities is nil")
+
 		return
 	}
 
@@ -90,6 +91,7 @@ func TestHandleGetSystemDateAndTime(t *testing.T) {
 	// Response should be a map or interface
 	if resp == nil {
 		t.Error("Response is nil")
+
 		return
 	}
 }
@@ -110,6 +112,7 @@ func TestHandleGetServices(t *testing.T) {
 
 	if len(servicesResp.Service) == 0 {
 		t.Error("No services returned")
+
 		return
 	}
 
@@ -159,7 +162,7 @@ func TestGetDeviceInformationResponseXML(t *testing.T) {
 		Model:           "TestModel",
 		FirmwareVersion: "1.0.0",
 		SerialNumber:    "SN123",
-		HardwareId:      "HW001",
+		HardwareID:      "HW001",
 	}
 
 	// Marshal to XML
@@ -206,8 +209,8 @@ func TestCapabilitiesStructure(t *testing.T) {
 			XAddr: "http://localhost:8080/onvif/media_service",
 			StreamingCapabilities: &StreamingCapabilities{
 				RTPMulticast: true,
-				RTP_TCP:       true,
-				RTP_RTSP_TCP:  true,
+				RTPTCP:       true,
+				RTPRTSPTCP:   true,
 			},
 		},
 	}
@@ -236,8 +239,8 @@ func TestMediaCapabilitiesStructure(t *testing.T) {
 		XAddr: "http://localhost:8080/onvif/media_service",
 		StreamingCapabilities: &StreamingCapabilities{
 			RTPMulticast: true,
-			RTP_TCP:       true,
-			RTP_RTSP_TCP:  true,
+			RTPTCP:       true,
+			RTPRTSPTCP:   true,
 		},
 	}
 
@@ -248,10 +251,10 @@ func TestMediaCapabilitiesStructure(t *testing.T) {
 	if !caps.StreamingCapabilities.RTPMulticast {
 		t.Error("RTP Multicast should be supported")
 	}
-	if !caps.StreamingCapabilities.RTP_TCP {
+	if !caps.StreamingCapabilities.RTPTCP {
 		t.Error("RTP TCP should be supported")
 	}
-	if !caps.StreamingCapabilities.RTP_RTSP_TCP {
+	if !caps.StreamingCapabilities.RTPRTSPTCP {
 		t.Error("RTSP should be supported")
 	}
 }
@@ -265,6 +268,7 @@ func TestHandleSnapshot(t *testing.T) {
 	profiles := server.ListProfiles()
 	if len(profiles) == 0 {
 		t.Error("No profiles available for snapshot")
+
 		return
 	}
 
@@ -289,6 +293,7 @@ func TestHandleGetCapabilitiesDetails(t *testing.T) {
 
 	if capsResp.Capabilities == nil {
 		t.Error("Capabilities is nil")
+
 		return
 	}
 
@@ -327,8 +332,9 @@ func TestHandleGetServicesDetails(t *testing.T) {
 		t.Fatalf("Response is not GetServicesResponse: %T", resp)
 	}
 
-	if servResp.Service == nil || len(servResp.Service) == 0 {
+	if len(servResp.Service) == 0 {
 		t.Error("No services returned")
+
 		return
 	}
 
@@ -337,7 +343,7 @@ func TestHandleGetServicesDetails(t *testing.T) {
 		if svc.Namespace == "" {
 			t.Error("Service Namespace is empty")
 		}
-		if len(svc.XAddr) == 0 {
+		if svc.XAddr == "" {
 			t.Error("Service XAddr is empty")
 		}
 	}
@@ -362,8 +368,8 @@ func TestGetCapabilitiesResponse(t *testing.T) {
 			XAddr: "http://localhost:8080/media",
 			StreamingCapabilities: &StreamingCapabilities{
 				RTPMulticast: true,
-				RTP_TCP:       true,
-				RTP_RTSP_TCP:  true,
+				RTPTCP:       true,
+				RTPRTSPTCP:   true,
 			},
 		},
 	}

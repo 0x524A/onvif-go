@@ -17,17 +17,29 @@ var (
 	version = "1.0.0"
 )
 
+const (
+	defaultPort    = 8080
+	maxWorkers     = 3
+	defaultTimeout = 30
+	ptzStepSize    = 5
+	ptzMaxPan      = 180
+	ptzMaxTilt     = 90
+	ptzSpeed       = 0.5
+)
+
 func main() {
 	// Define command-line flags
 	host := flag.String("host", "0.0.0.0", "Server host address")
-	port := flag.Int("port", 8080, "Server port")
+	port := flag.Int("port", defaultPort, "Server port")
 	username := flag.String("username", "admin", "Authentication username")
 	password := flag.String("password", "admin", "Authentication password")
 	manufacturer := flag.String("manufacturer", "onvif-go", "Device manufacturer")
 	model := flag.String("model", "Virtual Multi-Lens Camera", "Device model")
 	firmware := flag.String("firmware", "1.0.0", "Firmware version")
 	serial := flag.String("serial", "SN-12345678", "Serial number")
-	profiles := flag.Int("profiles", 3, "Number of camera profiles (1-10)")
+	profiles := flag.Int(
+		"profiles", maxWorkers, "Number of camera profiles (1-10)",
+	)
 	ptz := flag.Bool("ptz", true, "Enable PTZ support")
 	imaging := flag.Bool("imaging", true, "Enable Imaging support")
 	events := flag.Bool("events", false, "Enable Events support")
@@ -108,15 +120,14 @@ func main() {
 	fmt.Println("✅ Server stopped")
 }
 
-// buildConfig creates a server configuration from command-line arguments
+// buildConfig creates a server configuration from command-line arguments.
 func buildConfig(host string, port int, username, password, manufacturer, model,
 	firmware, serial string, numProfiles int, ptz, imaging, events bool) *server.Config {
-
 	config := &server.Config{
 		Host:     host,
 		Port:     port,
 		BasePath: "/onvif",
-		Timeout:  30 * time.Second,
+		Timeout:  defaultTimeout * time.Second,
 		DeviceInfo: server.DeviceInfo{
 			Manufacturer:    manufacturer,
 			Model:           model,
@@ -180,7 +191,7 @@ func buildConfig(host string, port int, username, password, manufacturer, model,
 			Snapshot: server.SnapshotConfig{
 				Enabled:    true,
 				Resolution: server.Resolution{Width: template.width, Height: template.height},
-				Quality:    template.quality + 5,
+				Quality:    template.quality + 5, //nolint:mnd // Quality offset
 			},
 		}
 
@@ -188,10 +199,10 @@ func buildConfig(host string, port int, username, password, manufacturer, model,
 		if ptz && template.hasPTZ {
 			profile.PTZ = &server.PTZConfig{
 				NodeToken:          fmt.Sprintf("ptz_node_%d", i),
-				PanRange:           server.Range{Min: -180, Max: 180},
-				TiltRange:          server.Range{Min: -90, Max: 90},
+				PanRange:           server.Range{Min: -ptzMaxPan, Max: ptzMaxPan},
+				TiltRange:          server.Range{Min: -ptzMaxTilt, Max: ptzMaxTilt},
 				ZoomRange:          server.Range{Min: 0, Max: template.ptzZoomMax},
-				DefaultSpeed:       server.PTZSpeed{Pan: 0.5, Tilt: 0.5, Zoom: 0.5},
+				DefaultSpeed:       server.PTZSpeed{Pan: ptzSpeed, Tilt: ptzSpeed, Zoom: ptzSpeed},
 				SupportsContinuous: true,
 				SupportsAbsolute:   true,
 				SupportsRelative:   true,
@@ -202,9 +213,11 @@ func buildConfig(host string, port int, username, password, manufacturer, model,
 						Position: server.PTZPosition{Pan: 0, Tilt: 0, Zoom: 0},
 					},
 					{
-						Token:    fmt.Sprintf("preset_%d_1", i),
-						Name:     "Entrance",
-						Position: server.PTZPosition{Pan: -45, Tilt: -10, Zoom: template.ptzZoomMax * 0.5},
+						Token: fmt.Sprintf("preset_%d_1", i),
+						Name:  "Entrance",
+						Position: server.PTZPosition{
+							Pan: -45, Tilt: -10, Zoom: template.ptzZoomMax * ptzSpeed,
+						},
 					},
 				},
 			}
@@ -216,7 +229,7 @@ func buildConfig(host string, port int, username, password, manufacturer, model,
 	return config
 }
 
-// printBanner prints the application banner
+// printBanner prints the application banner.
 func printBanner() {
 	banner := `
 ╔═══════════════════════════════════════════════════════════╗

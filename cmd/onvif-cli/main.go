@@ -12,8 +12,18 @@ import (
 	"time"
 
 	sd "github.com/0x524A/rtspeek/pkg/rtspeek"
+
 	"github.com/0x524a/onvif-go"
 	"github.com/0x524a/onvif-go/discovery"
+)
+
+const (
+	defaultTimeoutSeconds = 10
+	defaultRetryDelay     = 5
+	ptzTimeoutSeconds     = 30
+	maxRetries            = 3
+	readBufferSize        = 5
+	defaultBrightness     = "50.0"
 )
 
 type CLI struct {
@@ -50,6 +60,7 @@ func main() {
 			cli.imagingOperations()
 		case "0", "q", "quit", "exit":
 			fmt.Println("Goodbye! 👋")
+
 			return
 		default:
 			fmt.Println("❌ Invalid option. Please try again.")
@@ -76,17 +87,21 @@ func (c *CLI) showMainMenu() {
 
 func (c *CLI) readInput(prompt string) string {
 	fmt.Print(prompt)
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	input, _ := c.reader.ReadString('\n')
+
 	return strings.TrimSpace(input)
 }
 
 func (c *CLI) readInputWithDefault(prompt, defaultValue string) string {
 	fmt.Printf("%s [%s]: ", prompt, defaultValue)
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	input, _ := c.reader.ReadString('\n')
 	input = strings.TrimSpace(input)
 	if input == "" {
 		return defaultValue
 	}
+
 	return input
 }
 
@@ -95,12 +110,12 @@ func (c *CLI) discoverCameras() {
 	fmt.Println("This may take a few seconds...")
 	fmt.Println()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeoutSeconds*time.Second)
 	defer cancel()
 
 	// Try auto-discovery first (no specific interface)
 	fmt.Println("⏳ Attempting auto-discovery on default interface...")
-	devices, err := discovery.DiscoverWithOptions(ctx, 5*time.Second, &discovery.DiscoverOptions{})
+	devices, err := discovery.DiscoverWithOptions(ctx, defaultRetryDelay*time.Second, &discovery.DiscoverOptions{})
 
 	// If auto-discovery fails or finds nothing, offer interface selection
 	if err != nil || len(devices) == 0 {
@@ -118,6 +133,7 @@ func (c *CLI) discoverCameras() {
 		devices, err = c.discoverWithInterfaceSelection()
 		if err != nil {
 			fmt.Printf("❌ Discovery failed: %v\n", err)
+
 			return
 		}
 	}
@@ -131,6 +147,7 @@ func (c *CLI) discoverCameras() {
 		fmt.Println("   - Ensure you're on the same network segment as the cameras")
 		fmt.Println("   - Note: ONVIF requires multicast support (not available on WiFi)")
 		fmt.Println("   - Try discovering on wired Ethernet interfaces instead")
+
 		return
 	}
 
@@ -158,7 +175,7 @@ func (c *CLI) discoverCameras() {
 	// Ask if user wants to connect to one of the discovered cameras
 	if len(devices) > 0 {
 		connect := c.readInput("Do you want to connect to one of these cameras? (y/n): ")
-		if strings.ToLower(connect) == "y" || strings.ToLower(connect) == "yes" {
+		if strings.EqualFold(connect, "y") || strings.EqualFold(connect, "yes") {
 			if len(devices) == 1 {
 				c.connectToDiscoveredCamera(devices[0])
 			} else {
@@ -168,7 +185,9 @@ func (c *CLI) discoverCameras() {
 	}
 }
 
-// discoverWithInterfaceSelection shows available network interfaces and lets user select one
+// discoverWithInterfaceSelection shows available network interfaces and lets user select one.
+//
+//nolint:gocyclo // Interface selection has high complexity due to multiple user interaction paths
 func (c *CLI) discoverWithInterfaceSelection() ([]*discovery.Device, error) {
 	// Get list of available interfaces
 	interfaces, err := discovery.ListNetworkInterfaces()
@@ -177,7 +196,7 @@ func (c *CLI) discoverWithInterfaceSelection() ([]*discovery.Device, error) {
 	}
 
 	if len(interfaces) == 0 {
-		return nil, fmt.Errorf("no network interfaces found")
+		return nil, fmt.Errorf("%w", ErrNoNetworkInterfaces)
 	}
 
 	// Check how many interfaces are usable (UP and with addresses)
@@ -191,6 +210,7 @@ func (c *CLI) discoverWithInterfaceSelection() ([]*discovery.Device, error) {
 	// If only one active interface, use it automatically
 	if len(activeInterfaces) == 1 {
 		fmt.Printf("📡 Using only active interface: %s\n", activeInterfaces[0].Name)
+
 		return c.performDiscoveryOnInterface(activeInterfaces[0].Name)
 	}
 
@@ -224,7 +244,8 @@ func (c *CLI) discoverWithInterfaceSelection() ([]*discovery.Device, error) {
 		if len(allDevices) > 0 {
 			return allDevices, nil
 		}
-		return nil, fmt.Errorf("no cameras found on any interface")
+
+		return nil, fmt.Errorf("%w", ErrNoCamerasFound)
 	}
 
 	// If no active interfaces found
@@ -243,19 +264,24 @@ func (c *CLI) discoverWithInterfaceSelection() ([]*discovery.Device, error) {
 		fmt.Printf("   %s (%s, Multicast: %s)\n", iface.Name, upStr, multicastStr)
 	}
 
-	return nil, fmt.Errorf("no active interfaces available for discovery")
+	return nil, fmt.Errorf("%w", ErrNoActiveInterfaces)
 }
 
-// performDiscoveryOnInterface performs discovery on a specific network interface
+// performDiscoveryOnInterface performs discovery on a specific network interface.
 func (c *CLI) performDiscoveryOnInterface(interfaceName string) ([]*discovery.Device, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeoutSeconds*time.Second)
 	defer cancel()
 
 	opts := &discovery.DiscoverOptions{
 		NetworkInterface: interfaceName,
 	}
 
-	return discovery.DiscoverWithOptions(ctx, 5*time.Second, opts)
+	devices, err := discovery.DiscoverWithOptions(ctx, defaultRetryDelay*time.Second, opts)
+	if err != nil {
+		return nil, fmt.Errorf("discovery failed: %w", err)
+	}
+
+	return devices, nil
 }
 
 func (c *CLI) selectAndConnectCamera(devices []*discovery.Device) {
@@ -272,6 +298,7 @@ func (c *CLI) selectAndConnectCamera(devices []*discovery.Device) {
 	index, err := strconv.Atoi(choice)
 	if err != nil || index < 1 || index > len(devices) {
 		fmt.Println("❌ Invalid selection")
+
 		return
 	}
 
@@ -291,6 +318,7 @@ func (c *CLI) connectToDiscoveredCamera(device *discovery.Device) {
 	username := c.readInputWithDefault("Username", "admin")
 
 	fmt.Print("Password: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	password, _ := c.reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 
@@ -298,7 +326,7 @@ func (c *CLI) connectToDiscoveredCamera(device *discovery.Device) {
 	insecure := false
 	if strings.HasPrefix(endpoint, "https://") {
 		skipTLS := c.readInputWithDefault("Skip TLS certificate verification? (y/N)", "N")
-		insecure = strings.ToLower(skipTLS) == "y" || strings.ToLower(skipTLS) == "yes"
+		insecure = strings.EqualFold(skipTLS, "y") || strings.EqualFold(skipTLS, "yes")
 	}
 
 	c.createClient(endpoint, username, password, insecure)
@@ -308,7 +336,9 @@ func (c *CLI) connectToCamera() {
 	fmt.Println("🔗 Connect to Camera")
 	fmt.Println("===================")
 
-	endpoint := c.readInputWithDefault("Camera endpoint (http://ip:port/onvif/device_service)", "http://192.168.1.100/onvif/device_service")
+	endpoint := c.readInputWithDefault(
+		"Camera endpoint (http://ip:port/onvif/device_service)",
+		"http://192.168.1.100/onvif/device_service")
 
 	// Warn if using HTTPS
 	if strings.HasPrefix(endpoint, "https://") {
@@ -318,6 +348,7 @@ func (c *CLI) connectToCamera() {
 	username := c.readInputWithDefault("Username", "admin")
 
 	fmt.Print("Password: ")
+	//nolint:errcheck // ReadString error on stdin is rare and not critical for CLI
 	password, _ := c.reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 
@@ -325,7 +356,7 @@ func (c *CLI) connectToCamera() {
 	insecure := false
 	if strings.HasPrefix(endpoint, "https://") {
 		skipTLS := c.readInputWithDefault("Skip TLS certificate verification? (y/N)", "N")
-		insecure = strings.ToLower(skipTLS) == "y" || strings.ToLower(skipTLS) == "yes"
+		insecure = strings.EqualFold(skipTLS, "y") || strings.EqualFold(skipTLS, "yes")
 	}
 
 	c.createClient(endpoint, username, password, insecure)
@@ -336,7 +367,7 @@ func (c *CLI) createClient(endpoint, username, password string, insecure bool) {
 
 	opts := []onvif.ClientOption{
 		onvif.WithCredentials(username, password),
-		onvif.WithTimeout(30 * time.Second),
+		onvif.WithTimeout(ptzTimeoutSeconds * time.Second),
 	}
 
 	if insecure {
@@ -347,6 +378,7 @@ func (c *CLI) createClient(endpoint, username, password string, insecure bool) {
 	client, err := onvif.NewClient(endpoint, opts...)
 	if err != nil {
 		fmt.Printf("❌ Failed to create client: %v\n", err)
+
 		return
 	}
 
@@ -360,9 +392,12 @@ func (c *CLI) createClient(endpoint, username, password string, insecure bool) {
 		fmt.Println("   - Endpoint URL is correct")
 		fmt.Println("   - Username and password are correct")
 		fmt.Println("   - Camera is accessible from this network")
-		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "certificate") || strings.Contains(err.Error(), "x509") {
+		if strings.Contains(err.Error(), "tls") ||
+			strings.Contains(err.Error(), "certificate") ||
+			strings.Contains(err.Error(), "x509") {
 			fmt.Println("   - For HTTPS cameras with self-signed certificates, answer 'y' to skip TLS verification")
 		}
+
 		return
 	}
 
@@ -385,6 +420,7 @@ func (c *CLI) createClient(endpoint, username, password string, insecure bool) {
 func (c *CLI) deviceOperations() {
 	if c.client == nil {
 		fmt.Println("❌ Not connected to any camera")
+
 		return
 	}
 
@@ -421,6 +457,7 @@ func (c *CLI) getDeviceInformation(ctx context.Context) {
 	info, err := c.client.GetDeviceInformation(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -438,6 +475,7 @@ func (c *CLI) getCapabilities(ctx context.Context) {
 	caps, err := c.client.GetCapabilities(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -469,6 +507,7 @@ func (c *CLI) getSystemDateTime(ctx context.Context) {
 	dateTime, err := c.client.GetSystemDateAndTime(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -477,8 +516,9 @@ func (c *CLI) getSystemDateTime(ctx context.Context) {
 
 func (c *CLI) rebootDevice(ctx context.Context) {
 	confirm := c.readInput("⚠️  Are you sure you want to reboot the device? (y/N): ")
-	if strings.ToLower(confirm) != "y" && strings.ToLower(confirm) != "yes" {
-		fmt.Println("Reboot cancelled")
+	if !strings.EqualFold(confirm, "y") && !strings.EqualFold(confirm, "yes") {
+		fmt.Println("Reboot canceled")
+
 		return
 	}
 
@@ -487,6 +527,7 @@ func (c *CLI) rebootDevice(ctx context.Context) {
 	message, err := c.client.SystemReboot(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -497,6 +538,7 @@ func (c *CLI) rebootDevice(ctx context.Context) {
 func (c *CLI) mediaOperations() {
 	if c.client == nil {
 		fmt.Println("❌ Not connected to any camera")
+
 		return
 	}
 
@@ -533,6 +575,7 @@ func (c *CLI) getMediaProfiles(ctx context.Context) {
 	profiles, err := c.client.GetProfiles(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -560,7 +603,7 @@ func (c *CLI) getMediaProfiles(ctx context.Context) {
 	}
 }
 
-// inspectRTSPStream probes an RTSP URI to get stream details using rtspeek library
+// inspectRTSPStream probes an RTSP URI to get stream details using rtspeek library.
 func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 	details := map[string]interface{}{
 		"uri":        streamURI,
@@ -570,10 +613,15 @@ func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 	}
 
 	// Use rtspeek library for detailed stream inspection
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		defaultRetryDelay*time.Second,
+	)
 	defer cancel()
 
-	streamInfo, err := sd.DescribeStream(ctx, streamURI, 5*time.Second)
+	streamInfo, err := sd.DescribeStream(
+		ctx, streamURI, defaultRetryDelay*time.Second,
+	)
 	if err == nil && streamInfo != nil {
 		details["reachable"] = streamInfo.IsReachable()
 
@@ -603,6 +651,7 @@ func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 		// Describe failed but connection was reachable - try TCP fallback
 		if streamInfo.IsReachable() {
 			details["reachable"] = true
+
 			return details
 		}
 	}
@@ -615,7 +664,7 @@ func (c *CLI) inspectRTSPStream(streamURI string) map[string]interface{} {
 	return details
 }
 
-// tryRTSPConnection attempts to connect to RTSP port and grab basic info
+// tryRTSPConnection attempts to connect to RTSP port and grab basic info.
 func (c *CLI) tryRTSPConnection(streamURI string) map[string]interface{} {
 	details := map[string]interface{}{
 		"uri":       streamURI,
@@ -635,15 +684,16 @@ func (c *CLI) tryRTSPConnection(streamURI string) map[string]interface{} {
 
 	// Default RTSP port if not specified
 	if !strings.Contains(hostPort, ":") {
-		hostPort = hostPort + ":554"
+		hostPort += ":554"
 	}
 
 	// Try to connect
-	conn, err := net.DialTimeout("tcp", hostPort, 3*time.Second)
+	conn, err := net.DialTimeout("tcp", hostPort, maxRetries*time.Second)
 	if err == nil {
-		_ = conn.Close() // Ignore error on close for connectivity check
+		_ = conn.Close()
 		details["reachable"] = true
 		details["port"] = strings.Split(hostPort, ":")[1]
+
 		return details
 	}
 
@@ -654,11 +704,13 @@ func (c *CLI) getStreamURIs(ctx context.Context) {
 	profiles, err := c.client.GetProfiles(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error getting profiles: %v\n", err)
+
 		return
 	}
 
 	if len(profiles) == 0 {
 		fmt.Println("❌ No profiles found")
+
 		return
 	}
 
@@ -716,11 +768,13 @@ func (c *CLI) getSnapshotURIs(ctx context.Context) {
 	profiles, err := c.client.GetProfiles(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error getting profiles: %v\n", err)
+
 		return
 	}
 
 	if len(profiles) == 0 {
 		fmt.Println("❌ No profiles found")
+
 		return
 	}
 
@@ -753,11 +807,13 @@ func (c *CLI) getVideoEncoderConfig(ctx context.Context) {
 	profiles, err := c.client.GetProfiles(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error getting profiles: %v\n", err)
+
 		return
 	}
 
 	if len(profiles) == 0 {
 		fmt.Println("❌ No profiles found")
+
 		return
 	}
 
@@ -770,12 +826,14 @@ func (c *CLI) getVideoEncoderConfig(ctx context.Context) {
 	index, err := strconv.Atoi(choice)
 	if err != nil || index < 1 || index > len(profiles) {
 		fmt.Println("❌ Invalid selection")
+
 		return
 	}
 
 	profile := profiles[index-1]
 	if profile.VideoEncoderConfiguration == nil {
 		fmt.Println("❌ No video encoder configuration found")
+
 		return
 	}
 
@@ -784,6 +842,7 @@ func (c *CLI) getVideoEncoderConfig(ctx context.Context) {
 	config, err := c.client.GetVideoEncoderConfiguration(ctx, profile.VideoEncoderConfiguration.Token)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -809,6 +868,7 @@ func (c *CLI) getVideoEncoderConfig(ctx context.Context) {
 func (c *CLI) ptzOperations() {
 	if c.client == nil {
 		fmt.Println("❌ Not connected to any camera")
+
 		return
 	}
 
@@ -830,6 +890,7 @@ func (c *CLI) ptzOperations() {
 	profileToken, err := c.getPTZProfileToken(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -862,7 +923,7 @@ func (c *CLI) getPTZProfileToken(ctx context.Context) (string, error) {
 	}
 
 	if len(profiles) == 0 {
-		return "", fmt.Errorf("no profiles found")
+		return "", fmt.Errorf("%w", ErrNoProfilesFound)
 	}
 
 	// Find a profile with PTZ configuration
@@ -874,6 +935,7 @@ func (c *CLI) getPTZProfileToken(ctx context.Context) (string, error) {
 
 	// If no PTZ profile found, use the first profile
 	fmt.Println("⚠️  No PTZ-specific profile found, using first profile")
+
 	return profiles[0].Token, nil
 }
 
@@ -884,6 +946,7 @@ func (c *CLI) getPTZStatus(ctx context.Context, profileToken string) {
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
 		fmt.Println("💡 PTZ might not be supported on this camera")
+
 		return
 	}
 
@@ -919,8 +982,11 @@ func (c *CLI) continuousMove(ctx context.Context, profileToken string) {
 	zoomStr := c.readInputWithDefault("Zoom speed (-1.0 to 1.0)", "0.0")
 	timeoutStr := c.readInputWithDefault("Timeout (seconds)", "2")
 
+	//nolint:errcheck // ParseFloat errors default to 0.0 which is acceptable for CLI input
 	pan, _ := strconv.ParseFloat(panStr, 64)
+	//nolint:errcheck // ParseFloat errors default to 0.0 which is acceptable for CLI input
 	tilt, _ := strconv.ParseFloat(tiltStr, 64)
+	//nolint:errcheck // ParseFloat errors default to 0.0 which is acceptable for CLI input
 	zoom, _ := strconv.ParseFloat(zoomStr, 64)
 
 	velocity := &onvif.PTZSpeed{
@@ -935,6 +1001,7 @@ func (c *CLI) continuousMove(ctx context.Context, profileToken string) {
 	err := c.client.ContinuousMove(ctx, profileToken, velocity, &timeout)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -949,8 +1016,11 @@ func (c *CLI) absoluteMove(ctx context.Context, profileToken string) {
 	tiltStr := c.readInputWithDefault("Tilt position (-1.0 to 1.0)", "0.0")
 	zoomStr := c.readInputWithDefault("Zoom position (-1.0 to 1.0)", "0.0")
 
+	//nolint:errcheck // ParseFloat errors default to 0.0 which is acceptable for CLI input
 	pan, _ := strconv.ParseFloat(panStr, 64)
+	//nolint:errcheck // ParseFloat errors default to 0.0 which is acceptable for CLI input
 	tilt, _ := strconv.ParseFloat(tiltStr, 64)
+	//nolint:errcheck // ParseFloat errors default to 0.0 which is acceptable for CLI input
 	zoom, _ := strconv.ParseFloat(zoomStr, 64)
 
 	position := &onvif.PTZVector{
@@ -963,6 +1033,7 @@ func (c *CLI) absoluteMove(ctx context.Context, profileToken string) {
 	err := c.client.AbsoluteMove(ctx, profileToken, position, nil)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -977,8 +1048,11 @@ func (c *CLI) relativeMove(ctx context.Context, profileToken string) {
 	tiltStr := c.readInputWithDefault("Tilt translation (-1.0 to 1.0)", "0.0")
 	zoomStr := c.readInputWithDefault("Zoom translation (-1.0 to 1.0)", "0.0")
 
+	//nolint:errcheck // ParseFloat errors default to 0.0 which is acceptable for CLI input
 	pan, _ := strconv.ParseFloat(panStr, 64)
+	//nolint:errcheck // ParseFloat errors default to 0.0 which is acceptable for CLI input
 	tilt, _ := strconv.ParseFloat(tiltStr, 64)
+	//nolint:errcheck // ParseFloat errors default to 0.0 which is acceptable for CLI input
 	zoom, _ := strconv.ParseFloat(zoomStr, 64)
 
 	translation := &onvif.PTZVector{
@@ -991,6 +1065,7 @@ func (c *CLI) relativeMove(ctx context.Context, profileToken string) {
 	err := c.client.RelativeMove(ctx, profileToken, translation, nil)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1001,14 +1076,15 @@ func (c *CLI) stopMovement(ctx context.Context, profileToken string) {
 	stopPanTilt := c.readInputWithDefault("Stop Pan/Tilt? (y/n)", "y")
 	stopZoom := c.readInputWithDefault("Stop Zoom? (y/n)", "y")
 
-	panTilt := strings.ToLower(stopPanTilt) == "y" || strings.ToLower(stopPanTilt) == "yes"
-	zoom := strings.ToLower(stopZoom) == "y" || strings.ToLower(stopZoom) == "yes"
+	panTilt := strings.EqualFold(stopPanTilt, "y") || strings.EqualFold(stopPanTilt, "yes")
+	zoom := strings.EqualFold(stopZoom, "y") || strings.EqualFold(stopZoom, "yes")
 
 	fmt.Println("⏳ Stopping movement...")
 
 	err := c.client.Stop(ctx, profileToken, panTilt, zoom)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1021,11 +1097,13 @@ func (c *CLI) getPTZPresets(ctx context.Context, profileToken string) {
 	presets, err := c.client.GetPresets(ctx, profileToken)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
 	if len(presets) == 0 {
 		fmt.Println("📝 No presets found")
+
 		return
 	}
 
@@ -1054,11 +1132,13 @@ func (c *CLI) gotoPreset(ctx context.Context, profileToken string) {
 	presets, err := c.client.GetPresets(ctx, profileToken)
 	if err != nil {
 		fmt.Printf("❌ Error getting presets: %v\n", err)
+
 		return
 	}
 
 	if len(presets) == 0 {
 		fmt.Println("📝 No presets available")
+
 		return
 	}
 
@@ -1071,6 +1151,7 @@ func (c *CLI) gotoPreset(ctx context.Context, profileToken string) {
 	index, err := strconv.Atoi(choice)
 	if err != nil || index < 1 || index > len(presets) {
 		fmt.Println("❌ Invalid selection")
+
 		return
 	}
 
@@ -1081,6 +1162,7 @@ func (c *CLI) gotoPreset(ctx context.Context, profileToken string) {
 	err = c.client.GotoPreset(ctx, profileToken, preset.Token, nil)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1090,6 +1172,7 @@ func (c *CLI) gotoPreset(ctx context.Context, profileToken string) {
 func (c *CLI) imagingOperations() {
 	if c.client == nil {
 		fmt.Println("❌ Not connected to any camera")
+
 		return
 	}
 
@@ -1111,6 +1194,7 @@ func (c *CLI) imagingOperations() {
 	videoSourceToken, err := c.getVideoSourceToken(ctx)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1143,7 +1227,7 @@ func (c *CLI) getVideoSourceToken(ctx context.Context) (string, error) {
 	}
 
 	if len(profiles) == 0 {
-		return "", fmt.Errorf("no profiles found")
+		return "", fmt.Errorf("%w", ErrNoProfilesFound)
 	}
 
 	for _, profile := range profiles {
@@ -1152,7 +1236,7 @@ func (c *CLI) getVideoSourceToken(ctx context.Context) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("no video source configuration found")
+	return "", fmt.Errorf("%w", ErrNoVideoSourceConfiguration)
 }
 
 func (c *CLI) getImagingSettings(ctx context.Context, videoSourceToken string) {
@@ -1161,6 +1245,7 @@ func (c *CLI) getImagingSettings(ctx context.Context, videoSourceToken string) {
 	settings, err := c.client.GetImagingSettings(ctx, videoSourceToken)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1208,10 +1293,11 @@ func (c *CLI) setBrightness(ctx context.Context, videoSourceToken string) {
 	currentSettings, err := c.client.GetImagingSettings(ctx, videoSourceToken)
 	if err != nil {
 		fmt.Printf("❌ Error getting current settings: %v\n", err)
+
 		return
 	}
 
-	currentValue := "50.0"
+	currentValue := defaultBrightness
 	if currentSettings.Brightness != nil {
 		currentValue = fmt.Sprintf("%.1f", *currentSettings.Brightness)
 	}
@@ -1220,6 +1306,7 @@ func (c *CLI) setBrightness(ctx context.Context, videoSourceToken string) {
 	brightness, err := strconv.ParseFloat(brightnessStr, 64)
 	if err != nil {
 		fmt.Println("❌ Invalid brightness value")
+
 		return
 	}
 
@@ -1230,6 +1317,7 @@ func (c *CLI) setBrightness(ctx context.Context, videoSourceToken string) {
 	err = c.client.SetImagingSettings(ctx, videoSourceToken, currentSettings, true)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1240,10 +1328,11 @@ func (c *CLI) setContrast(ctx context.Context, videoSourceToken string) {
 	currentSettings, err := c.client.GetImagingSettings(ctx, videoSourceToken)
 	if err != nil {
 		fmt.Printf("❌ Error getting current settings: %v\n", err)
+
 		return
 	}
 
-	currentValue := "50.0"
+	currentValue := defaultBrightness
 	if currentSettings.Contrast != nil {
 		currentValue = fmt.Sprintf("%.1f", *currentSettings.Contrast)
 	}
@@ -1252,6 +1341,7 @@ func (c *CLI) setContrast(ctx context.Context, videoSourceToken string) {
 	contrast, err := strconv.ParseFloat(contrastStr, 64)
 	if err != nil {
 		fmt.Println("❌ Invalid contrast value")
+
 		return
 	}
 
@@ -1262,6 +1352,7 @@ func (c *CLI) setContrast(ctx context.Context, videoSourceToken string) {
 	err = c.client.SetImagingSettings(ctx, videoSourceToken, currentSettings, true)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1272,10 +1363,11 @@ func (c *CLI) setSaturation(ctx context.Context, videoSourceToken string) {
 	currentSettings, err := c.client.GetImagingSettings(ctx, videoSourceToken)
 	if err != nil {
 		fmt.Printf("❌ Error getting current settings: %v\n", err)
+
 		return
 	}
 
-	currentValue := "50.0"
+	currentValue := defaultBrightness
 	if currentSettings.ColorSaturation != nil {
 		currentValue = fmt.Sprintf("%.1f", *currentSettings.ColorSaturation)
 	}
@@ -1284,6 +1376,7 @@ func (c *CLI) setSaturation(ctx context.Context, videoSourceToken string) {
 	saturation, err := strconv.ParseFloat(saturationStr, 64)
 	if err != nil {
 		fmt.Println("❌ Invalid saturation value")
+
 		return
 	}
 
@@ -1294,6 +1387,7 @@ func (c *CLI) setSaturation(ctx context.Context, videoSourceToken string) {
 	err = c.client.SetImagingSettings(ctx, videoSourceToken, currentSettings, true)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1304,10 +1398,11 @@ func (c *CLI) setSharpness(ctx context.Context, videoSourceToken string) {
 	currentSettings, err := c.client.GetImagingSettings(ctx, videoSourceToken)
 	if err != nil {
 		fmt.Printf("❌ Error getting current settings: %v\n", err)
+
 		return
 	}
 
-	currentValue := "50.0"
+	currentValue := defaultBrightness
 	if currentSettings.Sharpness != nil {
 		currentValue = fmt.Sprintf("%.1f", *currentSettings.Sharpness)
 	}
@@ -1316,6 +1411,7 @@ func (c *CLI) setSharpness(ctx context.Context, videoSourceToken string) {
 	sharpness, err := strconv.ParseFloat(sharpnessStr, 64)
 	if err != nil {
 		fmt.Println("❌ Invalid sharpness value")
+
 		return
 	}
 
@@ -1326,6 +1422,7 @@ func (c *CLI) setSharpness(ctx context.Context, videoSourceToken string) {
 	err = c.client.SetImagingSettings(ctx, videoSourceToken, currentSettings, true)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1340,6 +1437,7 @@ func (c *CLI) advancedImagingSettings(ctx context.Context, videoSourceToken stri
 	currentSettings, err := c.client.GetImagingSettings(ctx, videoSourceToken)
 	if err != nil {
 		fmt.Printf("❌ Error getting current settings: %v\n", err)
+
 		return
 	}
 
@@ -1373,8 +1471,9 @@ func (c *CLI) advancedImagingSettings(ctx context.Context, videoSourceToken stri
 	}
 
 	confirm := c.readInput("Apply these settings? (y/N): ")
-	if strings.ToLower(confirm) != "y" && strings.ToLower(confirm) != "yes" {
+	if !strings.EqualFold(confirm, "y") && !strings.EqualFold(confirm, "yes") {
 		fmt.Println("Settings not applied")
+
 		return
 	}
 
@@ -1383,6 +1482,7 @@ func (c *CLI) advancedImagingSettings(ctx context.Context, videoSourceToken stri
 	err = c.client.SetImagingSettings(ctx, videoSourceToken, currentSettings, true)
 	if err != nil {
 		fmt.Printf("❌ Error: %v\n", err)
+
 		return
 	}
 
@@ -1391,7 +1491,8 @@ func (c *CLI) advancedImagingSettings(ctx context.Context, videoSourceToken stri
 	c.getImagingSettings(ctx, videoSourceToken)
 }
 
-func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
+//nolint:gocyclo // Snapshot capture and display has high complexity due to multiple error handling paths
+func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) { //nolint:funlen // Many statements due to error handling
 	fmt.Println("📷 Capture Snapshot as ASCII Preview")
 	fmt.Println("===================================")
 	fmt.Println()
@@ -1400,11 +1501,13 @@ func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
 	profiles, err := c.client.GetProfiles(ctx)
 	if err != nil {
 		fmt.Printf("❌ Failed to get profiles: %v\n", err)
+
 		return
 	}
 
 	if len(profiles) == 0 {
 		fmt.Println("❌ No profiles found")
+
 		return
 	}
 
@@ -1416,11 +1519,13 @@ func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
 	snapshotURI, err := c.client.GetSnapshotURI(ctx, profile.Token)
 	if err != nil {
 		fmt.Printf("❌ Failed to get snapshot URI: %v\n", err)
+
 		return
 	}
 
 	if snapshotURI == nil || snapshotURI.URI == "" {
 		fmt.Println("❌ No snapshot URI available")
+
 		return
 	}
 
@@ -1448,7 +1553,7 @@ func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
 	case "2":
 		config.Width = 100
 		config.Height = 30
-		config.Quality = "medium"
+		config.Quality = defaultQuality
 	case "3":
 		config.Width = 140
 		config.Height = 40
@@ -1460,7 +1565,7 @@ func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
 	default:
 		config.Width = 100
 		config.Height = 30
-		config.Quality = "medium"
+		config.Quality = defaultQuality
 	}
 
 	// Download actual snapshot
@@ -1470,6 +1575,7 @@ func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
 		fmt.Printf("❌ Failed to download snapshot: %v\n", err)
 		fmt.Println("\n💡 Try using curl directly:")
 		fmt.Printf("   curl -u username:password '%s' > snapshot.jpg\n", snapshotURI.URI)
+
 		return
 	}
 
@@ -1483,6 +1589,7 @@ func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
 		fmt.Printf("❌ Failed to convert image: %v\n", err)
 		fmt.Println("\n💡 Image might not be JPEG/PNG. Try downloading manually:")
 		fmt.Printf("   curl -u username:password '%s' > snapshot.jpg\n", snapshotURI.URI)
+
 		return
 	}
 
@@ -1504,12 +1611,14 @@ func (c *CLI) captureAndDisplaySnapshot(ctx context.Context) {
 	// Offer to save the snapshot
 	fmt.Println()
 	save := c.readInput("💾 Save snapshot to file? (y/n) [n]: ")
-	if strings.ToLower(save) == "y" {
+	if strings.EqualFold(save, "y") {
 		filename := c.readInput("📝 Filename [snapshot.jpg]: ")
 		if filename == "" {
 			filename = "snapshot.jpg"
 		}
-		if err := os.WriteFile(filename, snapshotData, 0644); err != nil {
+		if err := os.WriteFile(
+			filename, snapshotData, 0600, //nolint:mnd // 0600 appropriate for CLI output files
+		); err != nil {
 			fmt.Printf("❌ Failed to save file: %v\n", err)
 		} else {
 			fmt.Printf("✅ Snapshot saved to %s\n", filename)

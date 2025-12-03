@@ -52,14 +52,15 @@ func TestHandleGetStreamURI(t *testing.T) {
 		t.Fatalf("Response is not GetStreamURIResponse, got %T", resp)
 	}
 
-	if streamResp.MediaUri.Uri == "" {
+	if streamResp.MediaURI.URI == "" {
 		t.Error("Stream URI is empty")
+
 		return
 	}
 
 	// URI should contain stream path
-	if !contains(streamResp.MediaUri.Uri, "rtsp://") {
-		t.Errorf("Invalid stream URI format: %s", streamResp.MediaUri.Uri)
+	if !contains(streamResp.MediaURI.URI, "rtsp://") {
+		t.Errorf("Invalid stream URI format: %s", streamResp.MediaURI.URI)
 	}
 }
 
@@ -79,7 +80,7 @@ func TestHandleGetSnapshotURI(t *testing.T) {
 		t.Fatalf("Response is not GetSnapshotURIResponse, got %T", resp)
 	}
 
-	if snapResp.MediaUri.Uri == "" {
+	if snapResp.MediaURI.URI == "" {
 		t.Error("Snapshot URI is empty")
 	}
 }
@@ -100,6 +101,7 @@ func TestHandleGetVideoSources(t *testing.T) {
 
 	if len(sourcesResp.VideoSources) == 0 {
 		t.Error("No video sources returned")
+
 		return
 	}
 
@@ -174,9 +176,9 @@ func TestVideoEncoderConfigurationStructure(t *testing.T) {
 		Quality:    80,
 		Resolution: VideoResolution{Width: 1920, Height: 1080},
 		RateControl: &VideoRateControl{
-			FrameRateLimit: 30,
+			FrameRateLimit:   30,
 			EncodingInterval: 1,
-			BitrateLimit:   2048,
+			BitrateLimit:     2048,
 		},
 	}
 
@@ -225,28 +227,28 @@ func TestGetProfilesResponseXML(t *testing.T) {
 
 func TestIntRectangle(t *testing.T) {
 	tests := []struct {
-		name      string
-		rect      IntRectangle
+		name        string
+		rect        IntRectangle
 		expectValid bool
 	}{
 		{
-			name:      "Valid rectangle",
-			rect:      IntRectangle{X: 0, Y: 0, Width: 100, Height: 100},
+			name:        "Valid rectangle",
+			rect:        IntRectangle{X: 0, Y: 0, Width: 100, Height: 100},
 			expectValid: true,
 		},
 		{
-			name:      "Zero width",
-			rect:      IntRectangle{X: 0, Y: 0, Width: 0, Height: 100},
+			name:        "Zero width",
+			rect:        IntRectangle{X: 0, Y: 0, Width: 0, Height: 100},
 			expectValid: false,
 		},
 		{
-			name:      "Zero height",
-			rect:      IntRectangle{X: 0, Y: 0, Width: 100, Height: 0},
+			name:        "Zero height",
+			rect:        IntRectangle{X: 0, Y: 0, Width: 100, Height: 0},
 			expectValid: false,
 		},
 		{
-			name:      "Negative dimensions",
-			rect:      IntRectangle{X: -10, Y: -10, Width: 100, Height: 100},
+			name:        "Negative dimensions",
+			rect:        IntRectangle{X: -10, Y: -10, Width: 100, Height: 100},
 			expectValid: true, // Negative coordinates may be valid
 		},
 	}
@@ -263,33 +265,33 @@ func TestIntRectangle(t *testing.T) {
 
 func TestVideoResolution(t *testing.T) {
 	tests := []struct {
-		name       string
-		resolution VideoResolution
+		name        string
+		resolution  VideoResolution
 		expectValid bool
 	}{
 		{
-			name:       "1080p",
-			resolution: VideoResolution{Width: 1920, Height: 1080},
+			name:        "1080p",
+			resolution:  VideoResolution{Width: 1920, Height: 1080},
 			expectValid: true,
 		},
 		{
-			name:       "720p",
-			resolution: VideoResolution{Width: 1280, Height: 720},
+			name:        "720p",
+			resolution:  VideoResolution{Width: 1280, Height: 720},
 			expectValid: true,
 		},
 		{
-			name:       "VGA",
-			resolution: VideoResolution{Width: 640, Height: 480},
+			name:        "VGA",
+			resolution:  VideoResolution{Width: 640, Height: 480},
 			expectValid: true,
 		},
 		{
-			name:       "4K",
-			resolution: VideoResolution{Width: 3840, Height: 2160},
+			name:        "4K",
+			resolution:  VideoResolution{Width: 3840, Height: 2160},
 			expectValid: true,
 		},
 		{
-			name:       "Zero width",
-			resolution: VideoResolution{Width: 0, Height: 1080},
+			name:        "Zero width",
+			resolution:  VideoResolution{Width: 0, Height: 1080},
 			expectValid: false,
 		},
 	}
@@ -306,9 +308,9 @@ func TestVideoResolution(t *testing.T) {
 
 func TestMulticastConfiguration(t *testing.T) {
 	cfg := MulticastConfiguration{
-		Address: IPAddress{IPv4Address: "239.255.255.250"},
-		Port:    1900,
-		TTL:     128,
+		Address:   IPAddress{IPv4Address: "239.255.255.250"},
+		Port:      1900,
+		TTL:       128,
 		AutoStart: true,
 	}
 

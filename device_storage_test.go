@@ -147,8 +147,8 @@ func TestGetStorageConfigurations(t *testing.T) {
 		t.Errorf("Expected second config token 'storage-002', got '%s'", configs[1].Token)
 	}
 
-	if configs[1].Data.StorageUri != "cifs://nas.local/recordings" {
-		t.Errorf("Expected second config URI 'cifs://nas.local/recordings', got '%s'", configs[1].Data.StorageUri)
+	if configs[1].Data.StorageURI != "cifs://nas.local/recordings" {
+		t.Errorf("Expected second config URI 'cifs://nas.local/recordings', got '%s'", configs[1].Data.StorageURI)
 	}
 }
 
@@ -175,8 +175,8 @@ func TestGetStorageConfiguration(t *testing.T) {
 		t.Errorf("Expected config path '/var/media/storage1', got '%s'", config.Data.LocalPath)
 	}
 
-	if config.Data.StorageUri != "file:///var/media/storage1" {
-		t.Errorf("Expected config URI 'file:///var/media/storage1', got '%s'", config.Data.StorageUri)
+	if config.Data.StorageURI != "file:///var/media/storage1" {
+		t.Errorf("Expected config URI 'file:///var/media/storage1', got '%s'", config.Data.StorageURI)
 	}
 
 	if config.Data.Type != "NFS" {
@@ -198,7 +198,7 @@ func TestCreateStorageConfiguration(t *testing.T) {
 		Token: "storage-new",
 		Data: StorageConfigurationData{
 			LocalPath:  "/var/media/storage3",
-			StorageUri: "file:///var/media/storage3",
+			StorageURI: "file:///var/media/storage3",
 			Type:       "Local",
 		},
 	}
@@ -227,7 +227,7 @@ func TestSetStorageConfiguration(t *testing.T) {
 		Token: "storage-001",
 		Data: StorageConfigurationData{
 			LocalPath:  "/var/media/updated",
-			StorageUri: "file:///var/media/updated",
+			StorageURI: "file:///var/media/updated",
 			Type:       "NFS",
 		},
 	}

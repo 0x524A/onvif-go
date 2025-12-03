@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// ASCIIConfig controls ASCII art generation parameters
+// ASCIIConfig controls ASCII art generation parameters.
 type ASCIIConfig struct {
 	Width   int    // Output width in characters
 	Height  int    // Output height in characters
@@ -17,37 +17,47 @@ type ASCIIConfig struct {
 	Quality string // "high", "medium", "low"
 }
 
-// DefaultASCIIConfig returns a sensible default configuration
+const (
+	defaultASCIIWidth  = 120
+	defaultASCIIHeight = 40
+	maxColorValue      = 255
+	bitShift8          = 8
+	bufferSize1024     = 1024
+	largeASCIIWidth    = 160
+	largeASCIIHeight   = 50
+	defaultQuality     = "medium"
+)
+
+// DefaultASCIIConfig returns a sensible default configuration.
 func DefaultASCIIConfig() ASCIIConfig {
 	return ASCIIConfig{
-		Width:   120,
-		Height:  40,
+		Width:   defaultASCIIWidth,
+		Height:  defaultASCIIHeight,
 		Invert:  false,
 		Quality: "medium",
 	}
 }
 
-// ASCIICharsets define different character options
+// ASCIICharsets define different character options.
 var (
-	// Full charset with many shades
+	// Full charset with many shades.
 	charsetFull = []rune{' ', '.', ':', '-', '=', '+', '*', '#', '%', '@'}
 
-	// Medium charset - balanced
+	// Medium charset - balanced.
 	charsetMedium = []rune{' ', '.', '-', '=', '+', '#', '@'}
 
-	// Simple charset - just a few chars
+	// Simple charset - just a few chars.
 	charsetSimple = []rune{' ', '-', '#', '@'}
 
-	// Block charset - using block characters
+	// Block charset - using block characters.
 	charsetBlock = []rune{' ', '░', '▒', '▓', '█'}
 
-	// Detailed charset
+	// Detailed charset.
 	charsetDetailed = []rune{' ', '`', '.', ',', ':', ';', '!', 'i', 'l', 'I',
 		'o', 'O', '0', 'e', 'E', 'p', 'P', 'x', 'X', '$', 'D', 'W', 'M', '@', '#'}
 )
 
-// ImageToASCII converts image bytes to ASCII art
-// Supports JPEG and PNG formats
+// ImageToASCII converts image data to ASCII art. Supports JPEG and PNG formats.
 func ImageToASCII(imageData []byte, config ASCIIConfig) (string, error) {
 	// Decode image from bytes
 	img, _, err := image.Decode(bytes.NewReader(imageData))
@@ -58,17 +68,19 @@ func ImageToASCII(imageData []byte, config ASCIIConfig) (string, error) {
 	return imageToASCIIFromImage(img, config, "unknown")
 }
 
-// imageToASCIIFromImage is the core conversion function
-func imageToASCIIFromImage(img image.Image, config ASCIIConfig, format string) (string, error) {
+// imageToASCIIFromImage is the core conversion function.
+//
+//nolint:gocyclo // Image to ASCII conversion has high complexity due to multiple pixel processing paths
+func imageToASCIIFromImage(img image.Image, config ASCIIConfig, format string) (string, error) { //nolint:unparam // format reserved for future use
 	// Validate configuration
 	if config.Width <= 0 {
 		config.Width = 120
 	}
 	if config.Height <= 0 {
-		config.Height = 40
+		config.Height = defaultASCIIHeight
 	}
 	if config.Quality == "" {
-		config.Quality = "medium"
+		config.Quality = defaultQuality
 	}
 
 	// Select character set based on quality
@@ -119,11 +131,11 @@ func imageToASCIIFromImage(img image.Image, config ASCIIConfig, format string) (
 
 			// Invert if requested
 			if config.Invert {
-				brightness = 255 - brightness
+				brightness = maxColorValue - brightness
 			}
 
 			// Map brightness to character
-			charIndex := int(float64(brightness) / 255.0 * float64(len(charset)-1))
+			charIndex := int(float64(brightness) / float64(maxColorValue) * float64(len(charset)-1))
 			if charIndex >= len(charset) {
 				charIndex = len(charset) - 1
 			}
@@ -139,20 +151,19 @@ func imageToASCIIFromImage(img image.Image, config ASCIIConfig, format string) (
 	return result.String(), nil
 }
 
-// calculateBrightness converts RGB to brightness (0-255)
-// Uses standard luminance formula
+// Uses standard luminance formula.
 func calculateBrightness(r, g, b uint32) int {
 	// Convert 16-bit color to 8-bit
-	r8 := uint8(r >> 8)
-	g8 := uint8(g >> 8)
-	b8 := uint8(b >> 8)
+	r8 := uint8(r >> bitShift8) //nolint:gosec // Color values are clamped to valid range
+	g8 := uint8(g >> bitShift8) //nolint:gosec // Color values are clamped to valid range
+	b8 := uint8(b >> bitShift8) //nolint:gosec // Color values are clamped to valid range
 
 	// Use standard brightness calculation
 	// https://en.wikipedia.org/wiki/Relative_luminance
 	brightness := int(0.299*float64(r8) + 0.587*float64(g8) + 0.114*float64(b8))
 
-	if brightness > 255 {
-		brightness = 255
+	if brightness > maxColorValue {
+		brightness = maxColorValue
 	}
 	if brightness < 0 {
 		brightness = 0
@@ -161,7 +172,7 @@ func calculateBrightness(r, g, b uint32) int {
 	return brightness
 }
 
-// FormatASCIIOutput formats ASCII art with header and footer info
+// FormatASCIIOutput formats ASCII art with header and footer info.
 func FormatASCIIOutput(ascii string, imageInfo ImageInfo) string {
 	var result strings.Builder
 
@@ -199,7 +210,7 @@ func FormatASCIIOutput(ascii string, imageInfo ImageInfo) string {
 	return result.String()
 }
 
-// ImageInfo holds metadata about the snapshot
+// ImageInfo holds metadata about the snapshot.
 type ImageInfo struct {
 	Width       int    // Original width in pixels
 	Height      int    // Original height in pixels
@@ -208,24 +219,28 @@ type ImageInfo struct {
 	CaptureTime string // Capture timestamp
 }
 
-// formatBytes converts bytes to human-readable format
-func formatBytes(bytes int64) string {
-	if bytes < 1024 {
-		return fmt.Sprintf("%d B", bytes)
+// formatBytes converts bytes to human-readable format.
+func formatBytes(byteCount int64) string {
+	if byteCount < bufferSize1024 {
+		return fmt.Sprintf("%d B", byteCount)
 	}
-	if bytes < 1024*1024 {
-		return fmt.Sprintf("%.1f KB", float64(bytes)/1024)
+	const kbSize = 1024
+	const mbSize = 1024 * 1024
+	if byteCount < mbSize {
+		return fmt.Sprintf("%.1f KB", float64(byteCount)/kbSize)
 	}
-	return fmt.Sprintf("%.1f MB", float64(bytes)/(1024*1024))
+
+	return fmt.Sprintf("%.1f MB", float64(byteCount)/mbSize)
 }
 
-// CreateASCIIHighQuality creates a high-quality ASCII representation
+// CreateASCIIHighQuality creates a high-quality ASCII representation.
 func CreateASCIIHighQuality(imageData []byte) (string, error) {
 	config := ASCIIConfig{
-		Width:   160,
-		Height:  50,
+		Width:   largeASCIIWidth,
+		Height:  largeASCIIHeight,
 		Invert:  false,
 		Quality: "high",
 	}
+
 	return ImageToASCII(imageData, config)
 }

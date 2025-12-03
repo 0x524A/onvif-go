@@ -6,9 +6,11 @@ import (
 	"time"
 )
 
-// TestHandleGetPresets tests GetPresets handler - DISABLED due to SOAP namespace requirements
-// These handlers are better tested through the SOAP handler in integration tests
+// These handlers are better tested through the SOAP handler in integration tests.
+//
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleGetPresets(t *testing.T) {
+	t.Helper()
 	config := createTestConfig()
 	server, _ := New(config)
 	profileToken := config.Profiles[0].Token
@@ -75,8 +77,11 @@ func TestHandleGotoPreset(t *testing.T) {
 	}
 }
 
-// TestHandleGetStatus - DISABLED due to SOAP namespace requirements
+// TestHandleGetStatus - DISABLED due to SOAP namespace requirements.
+//
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleGetStatus(t *testing.T) {
+	t.Helper()
 	config := createTestConfig()
 	server, _ := New(config)
 	profileToken := config.Profiles[0].Token
@@ -100,6 +105,7 @@ func _DisabledTestHandleGetStatus(t *testing.T) {
 
 	if statusResp.PTZStatus == nil {
 		t.Error("PTZStatus is nil")
+
 		return
 	}
 
@@ -109,8 +115,11 @@ func _DisabledTestHandleGetStatus(t *testing.T) {
 	}
 }
 
-// TestHandleAbsoluteMove - DISABLED due to SOAP namespace requirements
+// TestHandleAbsoluteMove - DISABLED due to SOAP namespace requirements.
+//
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleAbsoluteMove(t *testing.T) {
+	t.Helper()
 	config := createTestConfig()
 	server, _ := New(config)
 	profileToken := config.Profiles[0].Token
@@ -149,8 +158,11 @@ func _DisabledTestHandleAbsoluteMove(t *testing.T) {
 	}
 }
 
-// TestHandleRelativeMove - DISABLED due to SOAP namespace requirements
+// TestHandleRelativeMove - DISABLED due to SOAP namespace requirements.
+//
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleRelativeMove(t *testing.T) {
+	t.Helper()
 	config := createTestConfig()
 	server, _ := New(config)
 	profileToken := config.Profiles[0].Token
@@ -189,8 +201,11 @@ func _DisabledTestHandleRelativeMove(t *testing.T) {
 	}
 }
 
-// TestHandleContinuousMove - DISABLED due to SOAP namespace requirements
+// TestHandleContinuousMove - DISABLED due to SOAP namespace requirements.
+//
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleContinuousMove(t *testing.T) {
+	t.Helper()
 	config := createTestConfig()
 	server, _ := New(config)
 	profileToken := config.Profiles[0].Token
@@ -229,8 +244,11 @@ func _DisabledTestHandleContinuousMove(t *testing.T) {
 	}
 }
 
-// TestHandleStop - DISABLED due to SOAP namespace requirements
+// TestHandleStop - DISABLED due to SOAP namespace requirements.
+//
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleStop(t *testing.T) {
+	t.Helper()
 	config := createTestConfig()
 	server, _ := New(config)
 	profileToken := config.Profiles[0].Token
@@ -265,28 +283,28 @@ func _DisabledTestHandleStop(t *testing.T) {
 
 func TestPTZPosition(t *testing.T) {
 	tests := []struct {
-		name      string
-		position  PTZPosition
+		name        string
+		position    PTZPosition
 		expectValid bool
 	}{
 		{
-			name:      "Valid center position",
-			position:  PTZPosition{Pan: 0, Tilt: 0, Zoom: 0},
+			name:        "Valid center position",
+			position:    PTZPosition{Pan: 0, Tilt: 0, Zoom: 0},
 			expectValid: true,
 		},
 		{
-			name:      "Position with pan",
-			position:  PTZPosition{Pan: 45, Tilt: 0, Zoom: 0},
+			name:        "Position with pan",
+			position:    PTZPosition{Pan: 45, Tilt: 0, Zoom: 0},
 			expectValid: true,
 		},
 		{
-			name:      "Position with zoom",
-			position:  PTZPosition{Pan: 0, Tilt: 0, Zoom: 5},
+			name:        "Position with zoom",
+			position:    PTZPosition{Pan: 0, Tilt: 0, Zoom: 5},
 			expectValid: true,
 		},
 		{
-			name:      "Full position",
-			position:  PTZPosition{Pan: 180, Tilt: 45, Zoom: 10},
+			name:        "Full position",
+			position:    PTZPosition{Pan: 180, Tilt: 45, Zoom: 10},
 			expectValid: true,
 		},
 	}
@@ -328,23 +346,23 @@ func TestPTZSpeed(t *testing.T) {
 	tilt := 0.5
 	zoom := 0.5
 	tests := []struct {
-		name      string
-		speed     PTZVector
+		name        string
+		speed       PTZVector
 		expectValid bool
 	}{
 		{
-			name:      "Valid speed",
-			speed:     PTZVector{PanTilt: &Vector2D{X: pan, Y: tilt}, Zoom: &Vector1D{X: zoom}},
+			name:        "Valid speed",
+			speed:       PTZVector{PanTilt: &Vector2D{X: pan, Y: tilt}, Zoom: &Vector1D{X: zoom}},
 			expectValid: true,
 		},
 		{
-			name:      "High speed",
-			speed:     PTZVector{PanTilt: &Vector2D{X: 1.0, Y: 1.0}, Zoom: &Vector1D{X: 1.0}},
+			name:        "High speed",
+			speed:       PTZVector{PanTilt: &Vector2D{X: 1.0, Y: 1.0}, Zoom: &Vector1D{X: 1.0}},
 			expectValid: true,
 		},
 		{
-			name:      "Zero speed",
-			speed:     PTZVector{PanTilt: &Vector2D{X: 0, Y: 0}, Zoom: &Vector1D{X: 0}},
+			name:        "Zero speed",
+			speed:       PTZVector{PanTilt: &Vector2D{X: 0, Y: 0}, Zoom: &Vector1D{X: 0}},
 			expectValid: true,
 		},
 	}
@@ -438,7 +456,7 @@ func TestPTZMovementOperations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := tt.handler([]byte(tt.reqXML))
-			
+
 			// These may fail due to XML namespace issues, but we're testing the handler exists
 			if resp == nil && err == nil {
 				t.Logf("%s: got nil response and nil error", tt.name)
@@ -462,6 +480,7 @@ func TestPTZPresetOperations(t *testing.T) {
 			name: "GetStatus",
 			testFunc: func() (interface{}, error) {
 				reqXML := `<GetStatus><ProfileToken>` + config.Profiles[0].Token + `</ProfileToken></GetStatus>`
+
 				return server.HandleGetStatus([]byte(reqXML))
 			},
 		},
@@ -501,7 +520,7 @@ func TestPTZStateTransitions(t *testing.T) {
 
 	// Verify position can be updated
 	ptzState.LastUpdate = time.Now()
-	
+
 	updatedState, _ := server.GetPTZState(profileToken)
 	if updatedState == nil {
 		t.Fatal("Updated PTZ state is nil")
