@@ -227,12 +227,16 @@ func deviceMapToSlice(m map[string]*Device) []*Device {
 
 // generateUUID generates a simple UUID (not cryptographically secure).
 func generateUUID() string {
+	now := time.Now()
+	nanos := now.UnixNano()
+	secs := now.Unix()
+
 	return fmt.Sprintf("%d-%d-%d-%d-%d",
-		time.Now().UnixNano(),
-		time.Now().Unix(),
-		time.Now().UnixNano()%uuidMod1000,
-		time.Now().Unix()%uuidMod1000,
-		time.Now().UnixNano()%uuidMod10000)
+		nanos,
+		secs,
+		nanos%uuidMod1000,
+		secs%uuidMod1000,
+		nanos%uuidMod10000)
 }
 
 // resolveNetworkInterface resolves a network interface by name or IP address.

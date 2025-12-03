@@ -506,15 +506,10 @@ func extractParam(authHeader, param string) string {
 }
 
 func md5Hash(s string) string {
-	return fmt.Sprintf("%x", md5sum(s))
-}
-
-func md5sum(s string) interface{} {
-	// Use crypto/md5 - import it if not already present
 	h := md5.New() //nolint:gosec // MD5 required for ONVIF digest auth
 	h.Write([]byte(s))
 
-	return h.Sum(nil)
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // generateNonce generates a cryptographically secure random nonce for digest authentication.

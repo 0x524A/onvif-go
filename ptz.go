@@ -11,6 +11,61 @@ import (
 // PTZ service namespace.
 const ptzNamespace = "http://www.onvif.org/ver20/ptz/wsdl"
 
+// ptzPanTiltXML is a shared type for PTZ pan/tilt XML serialization.
+type ptzPanTiltXML struct {
+	X     float64 `xml:"x,attr"`
+	Y     float64 `xml:"y,attr"`
+	Space string  `xml:"space,attr,omitempty"`
+}
+
+// ptzZoomXML is a shared type for PTZ zoom XML serialization.
+type ptzZoomXML struct {
+	X     float64 `xml:"x,attr"`
+	Space string  `xml:"space,attr,omitempty"`
+}
+
+// ptzVectorXML is a shared type for PTZ position/velocity XML serialization.
+type ptzVectorXML struct {
+	PanTilt *ptzPanTiltXML `xml:"PanTilt,omitempty"`
+	Zoom    *ptzZoomXML    `xml:"Zoom,omitempty"`
+}
+
+// ptzSpeedXML is a shared type for PTZ speed XML serialization.
+type ptzSpeedXML struct {
+	PanTilt *ptzPanTiltXML `xml:"PanTilt,omitempty"`
+	Zoom    *ptzZoomXML    `xml:"Zoom,omitempty"`
+}
+
+// convertToPTZVectorXML converts PTZVector to XML struct.
+func convertToPTZVectorXML(v *PTZVector) *ptzVectorXML {
+	if v == nil {
+		return nil
+	}
+	result := &ptzVectorXML{}
+	if v.PanTilt != nil {
+		result.PanTilt = &ptzPanTiltXML{X: v.PanTilt.X, Y: v.PanTilt.Y, Space: v.PanTilt.Space}
+	}
+	if v.Zoom != nil {
+		result.Zoom = &ptzZoomXML{X: v.Zoom.X, Space: v.Zoom.Space}
+	}
+	return result
+}
+
+// convertToPTZSpeedXML converts PTZSpeed to XML struct.
+func convertToPTZSpeedXML(s *PTZSpeed) *ptzSpeedXML {
+	if s == nil {
+		return nil
+	}
+	result := &ptzSpeedXML{}
+	if s.PanTilt != nil {
+		result.PanTilt = &ptzPanTiltXML{X: s.PanTilt.X, Y: s.PanTilt.Y, Space: s.PanTilt.Space}
+	}
+	if s.Zoom != nil {
+		result.Zoom = &ptzZoomXML{X: s.Zoom.X, Space: s.Zoom.Space}
+	}
+	return result
+}
+
 // ContinuousMove starts continuous PTZ movement.
 func (c *Client) ContinuousMove(ctx context.Context, profileToken string, velocity *PTZSpeed, timeout *string) error {
 	endpoint := c.ptzEndpoint
@@ -19,63 +74,18 @@ func (c *Client) ContinuousMove(ctx context.Context, profileToken string, veloci
 	}
 
 	type ContinuousMove struct {
-		XMLName      xml.Name `xml:"tptz:ContinuousMove"`
-		Xmlns        string   `xml:"xmlns:tptz,attr"`
-		ProfileToken string   `xml:"tptz:ProfileToken"`
-		Velocity     *struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		} `xml:"tptz:Velocity"`
-		Timeout *string `xml:"tptz:Timeout,omitempty"`
+		XMLName      xml.Name     `xml:"tptz:ContinuousMove"`
+		Xmlns        string       `xml:"xmlns:tptz,attr"`
+		ProfileToken string       `xml:"tptz:ProfileToken"`
+		Velocity     *ptzSpeedXML `xml:"tptz:Velocity"`
+		Timeout      *string      `xml:"tptz:Timeout,omitempty"`
 	}
 
 	req := ContinuousMove{
 		Xmlns:        ptzNamespace,
 		ProfileToken: profileToken,
+		Velocity:     convertToPTZSpeedXML(velocity),
 		Timeout:      timeout,
-	}
-
-	if velocity != nil {
-		req.Velocity = &struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		}{}
-
-		if velocity.PanTilt != nil {
-			req.Velocity.PanTilt = &struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     velocity.PanTilt.X,
-				Y:     velocity.PanTilt.Y,
-				Space: velocity.PanTilt.Space,
-			}
-		}
-
-		if velocity.Zoom != nil {
-			req.Velocity.Zoom = &struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     velocity.Zoom.X,
-				Space: velocity.Zoom.Space,
-			}
-		}
 	}
 
 	username, password := c.GetCredentials()
@@ -96,108 +106,18 @@ func (c *Client) AbsoluteMove(ctx context.Context, profileToken string, position
 	}
 
 	type AbsoluteMove struct {
-		XMLName      xml.Name `xml:"tptz:AbsoluteMove"`
-		Xmlns        string   `xml:"xmlns:tptz,attr"`
-		ProfileToken string   `xml:"tptz:ProfileToken"`
-		Position     *struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		} `xml:"tptz:Position"`
-		Speed *struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		} `xml:"tptz:Speed,omitempty"`
+		XMLName      xml.Name      `xml:"tptz:AbsoluteMove"`
+		Xmlns        string        `xml:"xmlns:tptz,attr"`
+		ProfileToken string        `xml:"tptz:ProfileToken"`
+		Position     *ptzVectorXML `xml:"tptz:Position"`
+		Speed        *ptzSpeedXML  `xml:"tptz:Speed,omitempty"`
 	}
 
 	req := AbsoluteMove{
 		Xmlns:        ptzNamespace,
 		ProfileToken: profileToken,
-	}
-
-	if position != nil {
-		req.Position = &struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		}{}
-
-		if position.PanTilt != nil {
-			req.Position.PanTilt = &struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     position.PanTilt.X,
-				Y:     position.PanTilt.Y,
-				Space: position.PanTilt.Space,
-			}
-		}
-
-		if position.Zoom != nil {
-			req.Position.Zoom = &struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     position.Zoom.X,
-				Space: position.Zoom.Space,
-			}
-		}
-	}
-
-	if speed != nil {
-		req.Speed = &struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		}{}
-
-		if speed.PanTilt != nil {
-			req.Speed.PanTilt = &struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     speed.PanTilt.X,
-				Y:     speed.PanTilt.Y,
-				Space: speed.PanTilt.Space,
-			}
-		}
-
-		if speed.Zoom != nil {
-			req.Speed.Zoom = &struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     speed.Zoom.X,
-				Space: speed.Zoom.Space,
-			}
-		}
+		Position:     convertToPTZVectorXML(position),
+		Speed:        convertToPTZSpeedXML(speed),
 	}
 
 	username, password := c.GetCredentials()
@@ -218,108 +138,18 @@ func (c *Client) RelativeMove(ctx context.Context, profileToken string, translat
 	}
 
 	type RelativeMove struct {
-		XMLName      xml.Name `xml:"tptz:RelativeMove"`
-		Xmlns        string   `xml:"xmlns:tptz,attr"`
-		ProfileToken string   `xml:"tptz:ProfileToken"`
-		Translation  *struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		} `xml:"tptz:Translation"`
-		Speed *struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		} `xml:"tptz:Speed,omitempty"`
+		XMLName      xml.Name      `xml:"tptz:RelativeMove"`
+		Xmlns        string        `xml:"xmlns:tptz,attr"`
+		ProfileToken string        `xml:"tptz:ProfileToken"`
+		Translation  *ptzVectorXML `xml:"tptz:Translation"`
+		Speed        *ptzSpeedXML  `xml:"tptz:Speed,omitempty"`
 	}
 
 	req := RelativeMove{
 		Xmlns:        ptzNamespace,
 		ProfileToken: profileToken,
-	}
-
-	if translation != nil {
-		req.Translation = &struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		}{}
-
-		if translation.PanTilt != nil {
-			req.Translation.PanTilt = &struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     translation.PanTilt.X,
-				Y:     translation.PanTilt.Y,
-				Space: translation.PanTilt.Space,
-			}
-		}
-
-		if translation.Zoom != nil {
-			req.Translation.Zoom = &struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     translation.Zoom.X,
-				Space: translation.Zoom.Space,
-			}
-		}
-	}
-
-	if speed != nil {
-		req.Speed = &struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		}{}
-
-		if speed.PanTilt != nil {
-			req.Speed.PanTilt = &struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     speed.PanTilt.X,
-				Y:     speed.PanTilt.Y,
-				Space: speed.PanTilt.Space,
-			}
-		}
-
-		if speed.Zoom != nil {
-			req.Speed.Zoom = &struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     speed.Zoom.X,
-				Space: speed.Zoom.Space,
-			}
-		}
+		Translation:  convertToPTZVectorXML(translation),
+		Speed:        convertToPTZSpeedXML(speed),
 	}
 
 	username, password := c.GetCredentials()
@@ -534,63 +364,18 @@ func (c *Client) GotoPreset(ctx context.Context, profileToken, presetToken strin
 	}
 
 	type GotoPreset struct {
-		XMLName      xml.Name `xml:"tptz:GotoPreset"`
-		Xmlns        string   `xml:"xmlns:tptz,attr"`
-		ProfileToken string   `xml:"tptz:ProfileToken"`
-		PresetToken  string   `xml:"tptz:PresetToken"`
-		Speed        *struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		} `xml:"tptz:Speed,omitempty"`
+		XMLName      xml.Name     `xml:"tptz:GotoPreset"`
+		Xmlns        string       `xml:"xmlns:tptz,attr"`
+		ProfileToken string       `xml:"tptz:ProfileToken"`
+		PresetToken  string       `xml:"tptz:PresetToken"`
+		Speed        *ptzSpeedXML `xml:"tptz:Speed,omitempty"`
 	}
 
 	req := GotoPreset{
 		Xmlns:        ptzNamespace,
 		ProfileToken: profileToken,
 		PresetToken:  presetToken,
-	}
-
-	if speed != nil {
-		req.Speed = &struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		}{}
-
-		if speed.PanTilt != nil {
-			req.Speed.PanTilt = &struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     speed.PanTilt.X,
-				Y:     speed.PanTilt.Y,
-				Space: speed.PanTilt.Space,
-			}
-		}
-
-		if speed.Zoom != nil {
-			req.Speed.Zoom = &struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     speed.Zoom.X,
-				Space: speed.Zoom.Space,
-			}
-		}
+		Speed:        convertToPTZSpeedXML(speed),
 	}
 
 	username, password := c.GetCredentials()
@@ -685,61 +470,16 @@ func (c *Client) GotoHomePosition(ctx context.Context, profileToken string, spee
 	}
 
 	type GotoHomePosition struct {
-		XMLName      xml.Name `xml:"tptz:GotoHomePosition"`
-		Xmlns        string   `xml:"xmlns:tptz,attr"`
-		ProfileToken string   `xml:"tptz:ProfileToken"`
-		Speed        *struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		} `xml:"tptz:Speed,omitempty"`
+		XMLName      xml.Name     `xml:"tptz:GotoHomePosition"`
+		Xmlns        string       `xml:"xmlns:tptz,attr"`
+		ProfileToken string       `xml:"tptz:ProfileToken"`
+		Speed        *ptzSpeedXML `xml:"tptz:Speed,omitempty"`
 	}
 
 	req := GotoHomePosition{
 		Xmlns:        ptzNamespace,
 		ProfileToken: profileToken,
-	}
-
-	if speed != nil {
-		req.Speed = &struct {
-			PanTilt *struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"PanTilt,omitempty"`
-			Zoom *struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			} `xml:"Zoom,omitempty"`
-		}{}
-
-		if speed.PanTilt != nil {
-			req.Speed.PanTilt = &struct {
-				X     float64 `xml:"x,attr"`
-				Y     float64 `xml:"y,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     speed.PanTilt.X,
-				Y:     speed.PanTilt.Y,
-				Space: speed.PanTilt.Space,
-			}
-		}
-
-		if speed.Zoom != nil {
-			req.Speed.Zoom = &struct {
-				X     float64 `xml:"x,attr"`
-				Space string  `xml:"space,attr,omitempty"`
-			}{
-				X:     speed.Zoom.X,
-				Space: speed.Zoom.Space,
-			}
-		}
+		Speed:        convertToPTZSpeedXML(speed),
 	}
 
 	username, password := c.GetCredentials()

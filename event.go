@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/0x524a/onvif-go/internal/soap"
@@ -751,28 +752,5 @@ func splitSpaceSeparated(s string) []string {
 		return nil
 	}
 
-	var result []string
-
-	start := 0
-	inWord := false
-
-	for i, r := range s {
-		if r == ' ' || r == '\t' {
-			if inWord {
-				result = append(result, s[start:i])
-				inWord = false
-			}
-		} else {
-			if !inWord {
-				start = i
-				inWord = true
-			}
-		}
-	}
-
-	if inWord {
-		result = append(result, s[start:])
-	}
-
-	return result
+	return strings.Fields(s)
 }

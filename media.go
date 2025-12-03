@@ -20,21 +20,11 @@ func (c *Client) getMediaEndpoint() string {
 	return c.endpoint
 }
 
-// getMediaSoapClient creates a new SOAP client for media operations.
-func (c *Client) getMediaSoapClient() *soap.Client {
-	username, password := c.GetCredentials()
-
-	return soap.NewClient(c.httpClient, username, password)
-}
-
 // GetProfiles retrieves all media profiles.
 //
 //nolint:funlen // GetProfiles has many statements due to parsing complex profile structures
 func (c *Client) GetProfiles(ctx context.Context) ([]*Profile, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetProfiles struct {
 		XMLName xml.Name `xml:"trt:GetProfiles"`
@@ -160,10 +150,7 @@ func (c *Client) GetProfiles(ctx context.Context) ([]*Profile, error) {
 
 // GetStreamURI retrieves the stream URI for a profile.
 func (c *Client) GetStreamURI(ctx context.Context, profileToken string) (*MediaURI, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetStreamURI struct {
 		XMLName     xml.Name `xml:"trt:GetStreamUri"`
@@ -214,10 +201,7 @@ func (c *Client) GetStreamURI(ctx context.Context, profileToken string) (*MediaU
 
 // GetSnapshotURI retrieves the snapshot URI for a profile.
 func (c *Client) GetSnapshotURI(ctx context.Context, profileToken string) (*MediaURI, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetSnapshotURI struct {
 		XMLName      xml.Name `xml:"trt:GetSnapshotUri"`
@@ -261,10 +245,7 @@ func (c *Client) GetVideoEncoderConfiguration(
 	ctx context.Context,
 	configurationToken string,
 ) (*VideoEncoderConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoEncoderConfiguration struct {
 		XMLName            xml.Name `xml:"trt:GetVideoEncoderConfiguration"`
@@ -334,10 +315,7 @@ func (c *Client) GetVideoEncoderConfiguration(
 
 // GetVideoSources retrieves all video sources.
 func (c *Client) GetVideoSources(ctx context.Context) ([]*VideoSource, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoSources struct {
 		XMLName xml.Name `xml:"trt:GetVideoSources"`
@@ -386,10 +364,7 @@ func (c *Client) GetVideoSources(ctx context.Context) ([]*VideoSource, error) {
 
 // GetAudioSources retrieves all audio sources.
 func (c *Client) GetAudioSources(ctx context.Context) ([]*AudioSource, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioSources struct {
 		XMLName xml.Name `xml:"trt:GetAudioSources"`
@@ -430,10 +405,7 @@ func (c *Client) GetAudioSources(ctx context.Context) ([]*AudioSource, error) {
 
 // GetAudioOutputs retrieves all audio outputs.
 func (c *Client) GetAudioOutputs(ctx context.Context) ([]*AudioOutput, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioOutputs struct {
 		XMLName xml.Name `xml:"trt:GetAudioOutputs"`
@@ -472,10 +444,7 @@ func (c *Client) GetAudioOutputs(ctx context.Context) ([]*AudioOutput, error) {
 
 // CreateProfile creates a new media profile.
 func (c *Client) CreateProfile(ctx context.Context, name, token string) (*Profile, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type CreateProfile struct {
 		XMLName xml.Name `xml:"trt:CreateProfile"`
@@ -517,10 +486,7 @@ func (c *Client) CreateProfile(ctx context.Context, name, token string) (*Profil
 
 // DeleteProfile deletes a media profile.
 func (c *Client) DeleteProfile(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type DeleteProfile struct {
 		XMLName      xml.Name `xml:"trt:DeleteProfile"`
@@ -549,10 +515,7 @@ func (c *Client) SetVideoEncoderConfiguration(
 	config *VideoEncoderConfiguration,
 	forcePersistence bool,
 ) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetVideoEncoderConfiguration struct {
 		XMLName       xml.Name `xml:"trt:SetVideoEncoderConfiguration"`
@@ -626,10 +589,7 @@ func (c *Client) SetVideoEncoderConfiguration(
 
 // GetMediaServiceCapabilities retrieves media service capabilities.
 func (c *Client) GetMediaServiceCapabilities(ctx context.Context) (*MediaServiceCapabilities, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetServiceCapabilities struct {
 		XMLName xml.Name `xml:"trt:GetServiceCapabilities"`
@@ -697,10 +657,7 @@ func (c *Client) GetMediaServiceCapabilities(ctx context.Context) (*MediaService
 func (c *Client) GetVideoEncoderConfigurationOptions(
 	ctx context.Context, configurationToken string,
 ) (*VideoEncoderConfigurationOptions, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoEncoderConfigurationOptions struct {
 		XMLName            xml.Name `xml:"trt:GetVideoEncoderConfigurationOptions"`
@@ -839,10 +796,7 @@ func (c *Client) GetAudioEncoderConfiguration(
 	ctx context.Context,
 	configurationToken string,
 ) (*AudioEncoderConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioEncoderConfiguration struct {
 		XMLName            xml.Name `xml:"trt:GetAudioEncoderConfiguration"`
@@ -920,10 +874,7 @@ func (c *Client) SetAudioEncoderConfiguration(
 	config *AudioEncoderConfiguration,
 	forcePersistence bool,
 ) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetAudioEncoderConfiguration struct {
 		XMLName       xml.Name `xml:"trt:SetAudioEncoderConfiguration"`
@@ -1011,10 +962,7 @@ func (c *Client) GetMetadataConfiguration(
 	ctx context.Context,
 	configurationToken string,
 ) (*MetadataConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetMetadataConfiguration struct {
 		XMLName            xml.Name `xml:"trt:GetMetadataConfiguration"`
@@ -1104,10 +1052,7 @@ func (c *Client) SetMetadataConfiguration(
 	config *MetadataConfiguration,
 	forcePersistence bool,
 ) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetMetadataConfiguration struct {
 		XMLName       xml.Name `xml:"trt:SetMetadataConfiguration"`
@@ -1203,10 +1148,7 @@ func (c *Client) SetMetadataConfiguration(
 
 // GetVideoSourceModes retrieves available video source modes.
 func (c *Client) GetVideoSourceModes(ctx context.Context, videoSourceToken string) ([]*VideoSourceMode, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoSourceModes struct {
 		XMLName          xml.Name `xml:"trt:GetVideoSourceModes"`
@@ -1257,10 +1199,7 @@ func (c *Client) GetVideoSourceModes(ctx context.Context, videoSourceToken strin
 
 // SetVideoSourceMode sets the video source mode.
 func (c *Client) SetVideoSourceMode(ctx context.Context, videoSourceToken, modeToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetVideoSourceMode struct {
 		XMLName          xml.Name `xml:"trt:SetVideoSourceMode"`
@@ -1287,10 +1226,7 @@ func (c *Client) SetVideoSourceMode(ctx context.Context, videoSourceToken, modeT
 
 // SetSynchronizationPoint sets a synchronization point for the stream.
 func (c *Client) SetSynchronizationPoint(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetSynchronizationPoint struct {
 		XMLName      xml.Name `xml:"trt:SetSynchronizationPoint"`
@@ -1315,10 +1251,7 @@ func (c *Client) SetSynchronizationPoint(ctx context.Context, profileToken strin
 
 // GetOSDs retrieves all OSD configurations.
 func (c *Client) GetOSDs(ctx context.Context, configurationToken string) ([]*OSDConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetOSDs struct {
 		XMLName            xml.Name `xml:"trt:GetOSDs"`
@@ -1361,10 +1294,7 @@ func (c *Client) GetOSDs(ctx context.Context, configurationToken string) ([]*OSD
 
 // GetOSD retrieves a specific OSD configuration.
 func (c *Client) GetOSD(ctx context.Context, osdToken string) (*OSDConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetOSD struct {
 		XMLName  xml.Name `xml:"trt:GetOSD"`
@@ -1400,10 +1330,7 @@ func (c *Client) GetOSD(ctx context.Context, osdToken string) (*OSDConfiguration
 
 // SetOSD sets OSD configuration.
 func (c *Client) SetOSD(ctx context.Context, osd *OSDConfiguration) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetOSD struct {
 		XMLName xml.Name `xml:"trt:SetOSD"`
@@ -1436,10 +1363,7 @@ func (c *Client) CreateOSD(
 	videoSourceConfigurationToken string,
 	osd *OSDConfiguration,
 ) (*OSDConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type CreateOSD struct {
 		XMLName                       xml.Name `xml:"trt:CreateOSD"`
@@ -1483,10 +1407,7 @@ func (c *Client) CreateOSD(
 
 // DeleteOSD deletes an OSD configuration.
 func (c *Client) DeleteOSD(ctx context.Context, osdToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type DeleteOSD struct {
 		XMLName  xml.Name `xml:"trt:DeleteOSD"`
@@ -1511,10 +1432,7 @@ func (c *Client) DeleteOSD(ctx context.Context, osdToken string) error {
 
 // StartMulticastStreaming starts multicast streaming.
 func (c *Client) StartMulticastStreaming(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type StartMulticastStreaming struct {
 		XMLName      xml.Name `xml:"trt:StartMulticastStreaming"`
@@ -1539,10 +1457,7 @@ func (c *Client) StartMulticastStreaming(ctx context.Context, profileToken strin
 
 // StopMulticastStreaming stops multicast streaming.
 func (c *Client) StopMulticastStreaming(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type StopMulticastStreaming struct {
 		XMLName      xml.Name `xml:"trt:StopMulticastStreaming"`
@@ -1567,10 +1482,7 @@ func (c *Client) StopMulticastStreaming(ctx context.Context, profileToken string
 
 // GetProfile retrieves a specific media profile.
 func (c *Client) GetProfile(ctx context.Context, profileToken string) (*Profile, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetProfile struct {
 		XMLName      xml.Name `xml:"trt:GetProfile"`
@@ -1608,10 +1520,7 @@ func (c *Client) GetProfile(ctx context.Context, profileToken string) (*Profile,
 
 // SetProfile sets profile configuration.
 func (c *Client) SetProfile(ctx context.Context, profile *Profile) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetProfile struct {
 		XMLName xml.Name `xml:"trt:SetProfile"`
@@ -1642,10 +1551,7 @@ func (c *Client) SetProfile(ctx context.Context, profile *Profile) error {
 
 // AddVideoEncoderConfiguration adds video encoder configuration to a profile.
 func (c *Client) AddVideoEncoderConfiguration(ctx context.Context, profileToken, configurationToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type AddVideoEncoderConfiguration struct {
 		XMLName            xml.Name `xml:"trt:AddVideoEncoderConfiguration"`
@@ -1672,10 +1578,7 @@ func (c *Client) AddVideoEncoderConfiguration(ctx context.Context, profileToken,
 
 // RemoveVideoEncoderConfiguration removes video encoder configuration from a profile.
 func (c *Client) RemoveVideoEncoderConfiguration(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type RemoveVideoEncoderConfiguration struct {
 		XMLName      xml.Name `xml:"trt:RemoveVideoEncoderConfiguration"`
@@ -1700,10 +1603,7 @@ func (c *Client) RemoveVideoEncoderConfiguration(ctx context.Context, profileTok
 
 // AddAudioEncoderConfiguration adds audio encoder configuration to a profile.
 func (c *Client) AddAudioEncoderConfiguration(ctx context.Context, profileToken, configurationToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type AddAudioEncoderConfiguration struct {
 		XMLName            xml.Name `xml:"trt:AddAudioEncoderConfiguration"`
@@ -1730,10 +1630,7 @@ func (c *Client) AddAudioEncoderConfiguration(ctx context.Context, profileToken,
 
 // RemoveAudioEncoderConfiguration removes audio encoder configuration from a profile.
 func (c *Client) RemoveAudioEncoderConfiguration(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type RemoveAudioEncoderConfiguration struct {
 		XMLName      xml.Name `xml:"trt:RemoveAudioEncoderConfiguration"`
@@ -1758,10 +1655,7 @@ func (c *Client) RemoveAudioEncoderConfiguration(ctx context.Context, profileTok
 
 // AddAudioSourceConfiguration adds audio source configuration to a profile.
 func (c *Client) AddAudioSourceConfiguration(ctx context.Context, profileToken, configurationToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type AddAudioSourceConfiguration struct {
 		XMLName            xml.Name `xml:"trt:AddAudioSourceConfiguration"`
@@ -1788,10 +1682,7 @@ func (c *Client) AddAudioSourceConfiguration(ctx context.Context, profileToken, 
 
 // RemoveAudioSourceConfiguration removes audio source configuration from a profile.
 func (c *Client) RemoveAudioSourceConfiguration(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type RemoveAudioSourceConfiguration struct {
 		XMLName      xml.Name `xml:"trt:RemoveAudioSourceConfiguration"`
@@ -1816,10 +1707,7 @@ func (c *Client) RemoveAudioSourceConfiguration(ctx context.Context, profileToke
 
 // AddVideoSourceConfiguration adds video source configuration to a profile.
 func (c *Client) AddVideoSourceConfiguration(ctx context.Context, profileToken, configurationToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type AddVideoSourceConfiguration struct {
 		XMLName            xml.Name `xml:"trt:AddVideoSourceConfiguration"`
@@ -1846,10 +1734,7 @@ func (c *Client) AddVideoSourceConfiguration(ctx context.Context, profileToken, 
 
 // RemoveVideoSourceConfiguration removes video source configuration from a profile.
 func (c *Client) RemoveVideoSourceConfiguration(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type RemoveVideoSourceConfiguration struct {
 		XMLName      xml.Name `xml:"trt:RemoveVideoSourceConfiguration"`
@@ -1874,10 +1759,7 @@ func (c *Client) RemoveVideoSourceConfiguration(ctx context.Context, profileToke
 
 // AddPTZConfiguration adds PTZ configuration to a profile.
 func (c *Client) AddPTZConfiguration(ctx context.Context, profileToken, configurationToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type AddPTZConfiguration struct {
 		XMLName            xml.Name `xml:"trt:AddPTZConfiguration"`
@@ -1904,10 +1786,7 @@ func (c *Client) AddPTZConfiguration(ctx context.Context, profileToken, configur
 
 // RemovePTZConfiguration removes PTZ configuration from a profile.
 func (c *Client) RemovePTZConfiguration(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type RemovePTZConfiguration struct {
 		XMLName      xml.Name `xml:"trt:RemovePTZConfiguration"`
@@ -1932,10 +1811,7 @@ func (c *Client) RemovePTZConfiguration(ctx context.Context, profileToken string
 
 // AddMetadataConfiguration adds metadata configuration to a profile.
 func (c *Client) AddMetadataConfiguration(ctx context.Context, profileToken, configurationToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type AddMetadataConfiguration struct {
 		XMLName            xml.Name `xml:"trt:AddMetadataConfiguration"`
@@ -1962,10 +1838,7 @@ func (c *Client) AddMetadataConfiguration(ctx context.Context, profileToken, con
 
 // RemoveMetadataConfiguration removes metadata configuration from a profile.
 func (c *Client) RemoveMetadataConfiguration(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type RemoveMetadataConfiguration struct {
 		XMLName      xml.Name `xml:"trt:RemoveMetadataConfiguration"`
@@ -1993,10 +1866,7 @@ func (c *Client) GetAudioEncoderConfigurationOptions(
 	ctx context.Context,
 	configurationToken, profileToken string,
 ) (*AudioEncoderConfigurationOptions, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioEncoderConfigurationOptions struct {
 		XMLName            xml.Name `xml:"trt:GetAudioEncoderConfigurationOptions"`
@@ -2045,10 +1915,7 @@ func (c *Client) GetMetadataConfigurationOptions(
 	ctx context.Context,
 	configurationToken, profileToken string,
 ) (*MetadataConfigurationOptions, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetMetadataConfigurationOptions struct {
 		XMLName            xml.Name `xml:"trt:GetMetadataConfigurationOptions"`
@@ -2124,7 +1991,9 @@ func (c *Client) GetAudioOutputConfiguration(ctx context.Context, configurationT
 	}
 
 	var resp GetAudioOutputConfigurationResponse
-	soapClient := c.getMediaSoapClient()
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
 
 	if err := soapClient.Call(ctx, endpoint, "", req, &resp); err != nil {
 		return nil, fmt.Errorf("GetAudioOutputConfiguration failed: %w", err)
@@ -2140,10 +2009,7 @@ func (c *Client) GetAudioOutputConfiguration(ctx context.Context, configurationT
 
 // SetAudioOutputConfiguration sets audio output configuration.
 func (c *Client) SetAudioOutputConfiguration(ctx context.Context, config *AudioOutputConfiguration, forcePersistence bool) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetAudioOutputConfiguration struct {
 		XMLName       xml.Name `xml:"trt:SetAudioOutputConfiguration"`
@@ -2184,10 +2050,7 @@ func (c *Client) GetAudioOutputConfigurationOptions(
 	ctx context.Context,
 	configurationToken string,
 ) (*AudioOutputConfigurationOptions, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioOutputConfigurationOptions struct {
 		XMLName            xml.Name `xml:"trt:GetAudioOutputConfigurationOptions"`
@@ -2228,10 +2091,7 @@ func (c *Client) GetAudioDecoderConfigurationOptions(
 	ctx context.Context,
 	configurationToken string,
 ) (*AudioDecoderConfigurationOptions, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioDecoderConfigurationOptions struct {
 		XMLName            xml.Name `xml:"trt:GetAudioDecoderConfigurationOptions"`
@@ -2297,10 +2157,7 @@ func (c *Client) GetGuaranteedNumberOfVideoEncoderInstances(
 	ctx context.Context,
 	configurationToken string,
 ) (*GuaranteedNumberOfVideoEncoderInstances, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetGuaranteedNumberOfVideoEncoderInstances struct {
 		XMLName            xml.Name `xml:"trt:GetGuaranteedNumberOfVideoEncoderInstances"`
@@ -2340,10 +2197,7 @@ func (c *Client) GetGuaranteedNumberOfVideoEncoderInstances(
 
 // GetOSDOptions retrieves available options for OSD configuration.
 func (c *Client) GetOSDOptions(ctx context.Context, configurationToken string) (*OSDConfigurationOptions, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetOSDOptions struct {
 		XMLName            xml.Name `xml:"trt:GetOSDOptions"`
@@ -2381,10 +2235,7 @@ func (c *Client) GetOSDOptions(ctx context.Context, configurationToken string) (
 
 // GetVideoSourceConfigurations retrieves all video source configurations.
 func (c *Client) GetVideoSourceConfigurations(ctx context.Context) ([]*VideoSourceConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoSourceConfigurations struct {
 		XMLName xml.Name `xml:"trt:GetVideoSourceConfigurations"`
@@ -2444,10 +2295,7 @@ func (c *Client) GetVideoSourceConfigurations(ctx context.Context) ([]*VideoSour
 
 // GetAudioSourceConfigurations retrieves all audio source configurations.
 func (c *Client) GetAudioSourceConfigurations(ctx context.Context) ([]*AudioSourceConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioSourceConfigurations struct {
 		XMLName xml.Name `xml:"trt:GetAudioSourceConfigurations"`
@@ -2492,10 +2340,7 @@ func (c *Client) GetAudioSourceConfigurations(ctx context.Context) ([]*AudioSour
 
 // GetVideoEncoderConfigurations retrieves all video encoder configurations.
 func (c *Client) GetVideoEncoderConfigurations(ctx context.Context) ([]*VideoEncoderConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoEncoderConfigurations struct {
 		XMLName xml.Name `xml:"trt:GetVideoEncoderConfigurations"`
@@ -2616,10 +2461,7 @@ func (c *Client) GetVideoEncoderConfigurations(ctx context.Context) ([]*VideoEnc
 
 // GetAudioEncoderConfigurations retrieves all audio encoder configurations.
 func (c *Client) GetAudioEncoderConfigurations(ctx context.Context) ([]*AudioEncoderConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioEncoderConfigurations struct {
 		XMLName xml.Name `xml:"trt:GetAudioEncoderConfigurations"`
@@ -2699,10 +2541,7 @@ func (c *Client) GetVideoSourceConfiguration(
 	ctx context.Context,
 	configurationToken string,
 ) (*VideoSourceConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoSourceConfiguration struct {
 		XMLName            xml.Name `xml:"trt:GetVideoSourceConfiguration"`
@@ -2785,7 +2624,9 @@ func (c *Client) GetAudioSourceConfiguration(ctx context.Context, configurationT
 	}
 
 	var resp GetAudioSourceConfigurationResponse
-	soapClient := c.getMediaSoapClient()
+
+	username, password := c.GetCredentials()
+	soapClient := soap.NewClient(c.httpClient, username, password)
 
 	if err := soapClient.Call(ctx, endpoint, "", req, &resp); err != nil {
 		return nil, fmt.Errorf("GetAudioSourceConfiguration failed: %w", err)
@@ -2804,10 +2645,7 @@ func (c *Client) GetVideoSourceConfigurationOptions(
 	ctx context.Context,
 	configurationToken, profileToken string,
 ) (*VideoSourceConfigurationOptions, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoSourceConfigurationOptions struct {
 		XMLName            xml.Name `xml:"trt:GetVideoSourceConfigurationOptions"`
@@ -2867,10 +2705,7 @@ func (c *Client) GetAudioSourceConfigurationOptions(
 	ctx context.Context,
 	configurationToken, profileToken string,
 ) (*AudioSourceConfigurationOptions, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioSourceConfigurationOptions struct {
 		XMLName            xml.Name `xml:"trt:GetAudioSourceConfigurationOptions"`
@@ -2916,10 +2751,7 @@ func (c *Client) SetVideoSourceConfiguration(
 	config *VideoSourceConfiguration,
 	forcePersistence bool,
 ) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetVideoSourceConfiguration struct {
 		XMLName       xml.Name `xml:"trt:SetVideoSourceConfiguration"`
@@ -2977,10 +2809,7 @@ func (c *Client) SetVideoSourceConfiguration(
 
 // SetAudioSourceConfiguration sets audio source configuration.
 func (c *Client) SetAudioSourceConfiguration(ctx context.Context, config *AudioSourceConfiguration, forcePersistence bool) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetAudioSourceConfiguration struct {
 		XMLName       xml.Name `xml:"trt:SetAudioSourceConfiguration"`
@@ -3021,10 +2850,7 @@ func (c *Client) GetCompatibleVideoEncoderConfigurations(
 	ctx context.Context,
 	profileToken string,
 ) ([]*VideoEncoderConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetCompatibleVideoEncoderConfigurations struct {
 		XMLName      xml.Name `xml:"trt:GetCompatibleVideoEncoderConfigurations"`
@@ -3102,10 +2928,7 @@ func (c *Client) GetCompatibleVideoSourceConfigurations(
 	ctx context.Context,
 	profileToken string,
 ) ([]*VideoSourceConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetCompatibleVideoSourceConfigurations struct {
 		XMLName      xml.Name `xml:"trt:GetCompatibleVideoSourceConfigurations"`
@@ -3170,10 +2993,7 @@ func (c *Client) GetCompatibleAudioEncoderConfigurations(
 	ctx context.Context,
 	profileToken string,
 ) ([]*AudioEncoderConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetCompatibleAudioEncoderConfigurations struct {
 		XMLName      xml.Name `xml:"trt:GetCompatibleAudioEncoderConfigurations"`
@@ -3224,10 +3044,7 @@ func (c *Client) GetCompatibleAudioEncoderConfigurations(
 
 // GetCompatibleAudioSourceConfigurations retrieves compatible audio source configurations for a profile.
 func (c *Client) GetCompatibleAudioSourceConfigurations(ctx context.Context, profileToken string) ([]*AudioSourceConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetCompatibleAudioSourceConfigurations struct {
 		XMLName      xml.Name `xml:"trt:GetCompatibleAudioSourceConfigurations"`
@@ -3274,10 +3091,7 @@ func (c *Client) GetCompatibleAudioSourceConfigurations(ctx context.Context, pro
 
 // GetCompatiblePTZConfigurations retrieves compatible PTZ configurations for a profile.
 func (c *Client) GetCompatiblePTZConfigurations(ctx context.Context, profileToken string) ([]*PTZConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetCompatiblePTZConfigurations struct {
 		XMLName      xml.Name `xml:"trt:GetCompatiblePTZConfigurations"`
@@ -3324,10 +3138,7 @@ func (c *Client) GetCompatiblePTZConfigurations(ctx context.Context, profileToke
 
 // GetCompatibleMetadataConfigurations retrieves compatible metadata configurations for a profile.
 func (c *Client) GetCompatibleMetadataConfigurations(ctx context.Context, profileToken string) ([]*MetadataConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetCompatibleMetadataConfigurations struct {
 		XMLName      xml.Name `xml:"trt:GetCompatibleMetadataConfigurations"`
@@ -3374,10 +3185,7 @@ func (c *Client) GetCompatibleMetadataConfigurations(ctx context.Context, profil
 
 // GetCompatibleAudioOutputConfigurations retrieves compatible audio output configurations for a profile.
 func (c *Client) GetCompatibleAudioOutputConfigurations(ctx context.Context, profileToken string) ([]*AudioOutputConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetCompatibleAudioOutputConfigurations struct {
 		XMLName      xml.Name `xml:"trt:GetCompatibleAudioOutputConfigurations"`
@@ -3424,10 +3232,7 @@ func (c *Client) GetCompatibleAudioOutputConfigurations(ctx context.Context, pro
 
 // GetCompatibleAudioDecoderConfigurations retrieves compatible audio decoder configurations for a profile.
 func (c *Client) GetCompatibleAudioDecoderConfigurations(ctx context.Context, profileToken string) ([]*AudioDecoderConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetCompatibleAudioDecoderConfigurations struct {
 		XMLName      xml.Name `xml:"trt:GetCompatibleAudioDecoderConfigurations"`
@@ -3472,10 +3277,7 @@ func (c *Client) GetCompatibleAudioDecoderConfigurations(ctx context.Context, pr
 
 // GetMetadataConfigurations retrieves all metadata configurations.
 func (c *Client) GetMetadataConfigurations(ctx context.Context) ([]*MetadataConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetMetadataConfigurations struct {
 		XMLName xml.Name `xml:"trt:GetMetadataConfigurations"`
@@ -3520,10 +3322,7 @@ func (c *Client) GetMetadataConfigurations(ctx context.Context) ([]*MetadataConf
 
 // GetAudioOutputConfigurations retrieves all audio output configurations.
 func (c *Client) GetAudioOutputConfigurations(ctx context.Context) ([]*AudioOutputConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioOutputConfigurations struct {
 		XMLName xml.Name `xml:"trt:GetAudioOutputConfigurations"`
@@ -3568,10 +3367,7 @@ func (c *Client) GetAudioOutputConfigurations(ctx context.Context) ([]*AudioOutp
 
 // GetAudioDecoderConfigurations retrieves all audio decoder configurations.
 func (c *Client) GetAudioDecoderConfigurations(ctx context.Context) ([]*AudioDecoderConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioDecoderConfigurations struct {
 		XMLName xml.Name `xml:"trt:GetAudioDecoderConfigurations"`
@@ -3617,10 +3413,7 @@ func (c *Client) GetAudioDecoderConfiguration(
 	ctx context.Context,
 	configurationToken string,
 ) (*AudioDecoderConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetAudioDecoderConfiguration struct {
 		XMLName            xml.Name `xml:"trt:GetAudioDecoderConfiguration"`
@@ -3660,10 +3453,7 @@ func (c *Client) GetAudioDecoderConfiguration(
 
 // SetAudioDecoderConfiguration sets audio decoder configuration.
 func (c *Client) SetAudioDecoderConfiguration(ctx context.Context, config *AudioDecoderConfiguration, forcePersistence bool) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetAudioDecoderConfiguration struct {
 		XMLName       xml.Name `xml:"trt:SetAudioDecoderConfiguration"`
@@ -3699,10 +3489,7 @@ func (c *Client) SetAudioDecoderConfiguration(ctx context.Context, config *Audio
 
 // GetVideoAnalyticsConfigurations retrieves all video analytics configurations.
 func (c *Client) GetVideoAnalyticsConfigurations(ctx context.Context) ([]*VideoAnalyticsConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoAnalyticsConfigurations struct {
 		XMLName xml.Name `xml:"trt:GetVideoAnalyticsConfigurations"`
@@ -3748,10 +3535,7 @@ func (c *Client) GetVideoAnalyticsConfiguration(
 	ctx context.Context,
 	configurationToken string,
 ) (*VideoAnalyticsConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoAnalyticsConfiguration struct {
 		XMLName            xml.Name `xml:"trt:GetVideoAnalyticsConfiguration"`
@@ -3791,10 +3575,7 @@ func (c *Client) GetVideoAnalyticsConfiguration(
 
 // GetCompatibleVideoAnalyticsConfigurations retrieves compatible video analytics configurations for a profile.
 func (c *Client) GetCompatibleVideoAnalyticsConfigurations(ctx context.Context, profileToken string) ([]*VideoAnalyticsConfiguration, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetCompatibleVideoAnalyticsConfigurations struct {
 		XMLName      xml.Name `xml:"trt:GetCompatibleVideoAnalyticsConfigurations"`
@@ -3839,10 +3620,7 @@ func (c *Client) GetCompatibleVideoAnalyticsConfigurations(ctx context.Context, 
 
 // SetVideoAnalyticsConfiguration sets video analytics configuration.
 func (c *Client) SetVideoAnalyticsConfiguration(ctx context.Context, config *VideoAnalyticsConfiguration, forcePersistence bool) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type SetVideoAnalyticsConfiguration struct {
 		XMLName       xml.Name `xml:"trt:SetVideoAnalyticsConfiguration"`
@@ -3881,10 +3659,7 @@ func (c *Client) GetVideoAnalyticsConfigurationOptions(
 	ctx context.Context,
 	configurationToken, profileToken string,
 ) (*VideoAnalyticsConfigurationOptions, error) {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type GetVideoAnalyticsConfigurationOptions struct {
 		XMLName            xml.Name `xml:"trt:GetVideoAnalyticsConfigurationOptions"`
@@ -3922,10 +3697,7 @@ func (c *Client) GetVideoAnalyticsConfigurationOptions(
 
 // AddVideoAnalyticsConfiguration adds a video analytics configuration to a profile.
 func (c *Client) AddVideoAnalyticsConfiguration(ctx context.Context, profileToken, configurationToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type AddVideoAnalyticsConfiguration struct {
 		XMLName            xml.Name `xml:"trt:AddVideoAnalyticsConfiguration"`
@@ -3952,10 +3724,7 @@ func (c *Client) AddVideoAnalyticsConfiguration(ctx context.Context, profileToke
 
 // RemoveVideoAnalyticsConfiguration removes a video analytics configuration from a profile.
 func (c *Client) RemoveVideoAnalyticsConfiguration(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type RemoveVideoAnalyticsConfiguration struct {
 		XMLName      xml.Name `xml:"trt:RemoveVideoAnalyticsConfiguration"`
@@ -3980,10 +3749,7 @@ func (c *Client) RemoveVideoAnalyticsConfiguration(ctx context.Context, profileT
 
 // AddAudioOutputConfiguration adds an audio output configuration to a profile.
 func (c *Client) AddAudioOutputConfiguration(ctx context.Context, profileToken, configurationToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type AddAudioOutputConfiguration struct {
 		XMLName            xml.Name `xml:"trt:AddAudioOutputConfiguration"`
@@ -4010,10 +3776,7 @@ func (c *Client) AddAudioOutputConfiguration(ctx context.Context, profileToken, 
 
 // RemoveAudioOutputConfiguration removes an audio output configuration from a profile.
 func (c *Client) RemoveAudioOutputConfiguration(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type RemoveAudioOutputConfiguration struct {
 		XMLName      xml.Name `xml:"trt:RemoveAudioOutputConfiguration"`
@@ -4038,10 +3801,7 @@ func (c *Client) RemoveAudioOutputConfiguration(ctx context.Context, profileToke
 
 // AddAudioDecoderConfiguration adds an audio decoder configuration to a profile.
 func (c *Client) AddAudioDecoderConfiguration(ctx context.Context, profileToken, configurationToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type AddAudioDecoderConfiguration struct {
 		XMLName            xml.Name `xml:"trt:AddAudioDecoderConfiguration"`
@@ -4068,10 +3828,7 @@ func (c *Client) AddAudioDecoderConfiguration(ctx context.Context, profileToken,
 
 // RemoveAudioDecoderConfiguration removes an audio decoder configuration from a profile.
 func (c *Client) RemoveAudioDecoderConfiguration(ctx context.Context, profileToken string) error {
-	endpoint := c.mediaEndpoint
-	if endpoint == "" {
-		endpoint = c.endpoint
-	}
+	endpoint := c.getMediaEndpoint()
 
 	type RemoveAudioDecoderConfiguration struct {
 		XMLName      xml.Name `xml:"trt:RemoveAudioDecoderConfiguration"`
