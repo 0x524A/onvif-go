@@ -135,7 +135,6 @@ type AdditionalTest struct {
 	Code string
 }
 
-//nolint:funlen // Main function has many statements due to test generation logic
 func main() {
 	flag.Parse()
 

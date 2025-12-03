@@ -142,9 +142,7 @@ func (c *Client) GetIPAddressFilter(ctx context.Context) (*IPAddressFilter, erro
 	return filter, nil
 }
 
-// SetIPAddressFilter sets the IP address filter settings on a device
-//
-//nolint:dupl // Similar structure to AddIPAddressFilter but different operation
+// SetIPAddressFilter sets the IP address filter settings on a device.
 func (c *Client) SetIPAddressFilter(ctx context.Context, filter *IPAddressFilter) error {
 	type SetIPAddressFilter struct {
 		XMLName         xml.Name `xml:"tds:SetIPAddressFilter"`
@@ -197,9 +195,7 @@ func (c *Client) SetIPAddressFilter(ctx context.Context, filter *IPAddressFilter
 	return nil
 }
 
-// AddIPAddressFilter adds an IP filter address to a device
-//
-//nolint:dupl // Similar structure to SetIPAddressFilter but different operation
+// AddIPAddressFilter adds an IP filter address to a device.
 func (c *Client) AddIPAddressFilter(ctx context.Context, filter *IPAddressFilter) error {
 	type AddIPAddressFilter struct {
 		XMLName         xml.Name `xml:"tds:AddIPAddressFilter"`

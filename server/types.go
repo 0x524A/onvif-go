@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	defaultPort       = 8080
 	defaultTimeoutSec = 30
 	defaultWidth      = 1920
 	defaultHeight     = 1080
@@ -250,10 +251,12 @@ type WDRSettings struct {
 }
 
 // DefaultConfig returns a default server configuration with a multi-lens camera setup.
-func DefaultConfig() *Config { //nolint:funlen // DefaultConfig has many statements due to comprehensive default configuration
+//
+//nolint:funlen // DefaultConfig has many statements due to comprehensive default configuration
+func DefaultConfig() *Config {
 	return &Config{
 		Host:     "0.0.0.0",
-		Port:     8080, //nolint:mnd // Default HTTP port
+		Port:     defaultPort,
 		BasePath: "/onvif",
 		Timeout:  defaultTimeoutSec * time.Second,
 		DeviceInfo: DeviceInfo{
@@ -302,14 +305,14 @@ func DefaultConfig() *Config { //nolint:funlen // DefaultConfig has many stateme
 						{Token: "preset_0", Name: "Home", Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
 						{
 							Token: "preset_1", Name: "Entrance",
-							Position: PTZPosition{Pan: -45, Tilt: -10, Zoom: defaultPTZSpeed}, //nolint:mnd // Preset position
+							Position: PTZPosition{Pan: -45, Tilt: -10, Zoom: defaultPTZSpeed},
 						},
 					},
 				},
 				Snapshot: SnapshotConfig{
 					Enabled:    true,
-					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight}, //nolint:mnd // Default resolution
-					Quality:    highQuality,                                            //nolint:mnd // High quality
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Quality:    highQuality,
 				},
 			},
 			{
@@ -318,22 +321,22 @@ func DefaultConfig() *Config { //nolint:funlen // DefaultConfig has many stateme
 				VideoSource: VideoSourceConfig{
 					Token:      "video_source_1",
 					Name:       "Wide Angle Camera",
-					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight},         //nolint:mnd // Medium resolution
-					Framerate:  defaultFramerate,                                             //nolint:mnd // Default framerate
-					Bounds:     Bounds{X: 0, Y: 0, Width: mediumWidth, Height: mediumHeight}, //nolint:mnd // Medium bounds
+					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight},
+					Framerate:  defaultFramerate,
+					Bounds:     Bounds{X: 0, Y: 0, Width: mediumWidth, Height: mediumHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
 					Encoding:   "H264",
-					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight}, //nolint:mnd // Medium resolution
-					Quality:    mediumQuality,                                        //nolint:mnd // Medium quality
-					Framerate:  defaultFramerate,                                     //nolint:mnd // Default framerate
-					Bitrate:    mediumBitrate,                                        //nolint:mnd // Medium bitrate
-					GovLength:  defaultFramerate,                                     //nolint:mnd // Default gov length
+					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight},
+					Quality:    mediumQuality,
+					Framerate:  defaultFramerate,
+					Bitrate:    mediumBitrate,
+					GovLength:  defaultFramerate,
 				},
 				Snapshot: SnapshotConfig{
 					Enabled:    true,
-					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight}, //nolint:mnd // Medium resolution
-					Quality:    defaultQuality,                                       //nolint:mnd // Default quality
+					Resolution: Resolution{Width: mediumWidth, Height: mediumHeight},
+					Quality:    defaultQuality,
 				},
 			},
 			{
@@ -342,25 +345,25 @@ func DefaultConfig() *Config { //nolint:funlen // DefaultConfig has many stateme
 				VideoSource: VideoSourceConfig{
 					Token:      "video_source_2",
 					Name:       "Telephoto Camera",
-					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},         //nolint:mnd // Default resolution
-					Framerate:  lowFramerate,                                                   //nolint:mnd // Low framerate
-					Bounds:     Bounds{X: 0, Y: 0, Width: defaultWidth, Height: defaultHeight}, //nolint:mnd // Default bounds
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Framerate:  lowFramerate,
+					Bounds:     Bounds{X: 0, Y: 0, Width: defaultWidth, Height: defaultHeight},
 				},
 				VideoEncoder: VideoEncoderConfig{
 					Encoding:   "H264",
-					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight}, //nolint:mnd // Default resolution
-					Quality:    highQuality,                                            //nolint:mnd // High quality
-					Framerate:  lowFramerate,                                           //nolint:mnd // Low framerate
-					Bitrate:    highBitrate,                                            //nolint:mnd // High bitrate
-					GovLength:  lowFramerate,                                           //nolint:mnd // Low framerate
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Quality:    highQuality,
+					Framerate:  lowFramerate,
+					Bitrate:    highBitrate,
+					GovLength:  lowFramerate,
 				},
 				PTZ: &PTZConfig{
 					NodeToken: "ptz_node_2",
 					PanRange:  Range{Min: -maxPan, Max: maxPan},
 					TiltRange: Range{Min: -maxTilt, Max: maxTilt},
-					ZoomRange: Range{Min: 0, Max: maxZoom}, //nolint:mnd // Max zoom
+					ZoomRange: Range{Min: 0, Max: maxZoom},
 					DefaultSpeed: PTZSpeed{
-						Pan: lowPTZSpeed, Tilt: lowPTZSpeed, Zoom: lowPTZSpeed, //nolint:mnd // Low PTZ speed
+						Pan: lowPTZSpeed, Tilt: lowPTZSpeed, Zoom: lowPTZSpeed,
 					},
 					SupportsContinuous: true,
 					SupportsAbsolute:   true,
@@ -369,14 +372,14 @@ func DefaultConfig() *Config { //nolint:funlen // DefaultConfig has many stateme
 						{Token: "preset_2_0", Name: "Home", Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: 0}},
 						{
 							Token: "preset_2_1", Name: "Zoom In",
-							Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: presetZoom}, //nolint:mnd // Preset zoom
+							Position: PTZPosition{Pan: 0, Tilt: 0, Zoom: presetZoom},
 						},
 					},
 				},
 				Snapshot: SnapshotConfig{
 					Enabled:    true,
-					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight}, //nolint:mnd // Default resolution
-					Quality:    highQuality,                                            //nolint:mnd // High quality
+					Resolution: Resolution{Width: defaultWidth, Height: defaultHeight},
+					Quality:    highQuality,
 				},
 			},
 		},
@@ -393,7 +396,7 @@ func (c *Config) ServiceEndpoints(host string) map[string]string {
 	}
 
 	var baseURL string
-	const httpPort = 80 //nolint:mnd // Standard HTTP port
+	const httpPort = 80
 	if c.Port == httpPort {
 		baseURL = "http://" + host + c.BasePath
 	} else {

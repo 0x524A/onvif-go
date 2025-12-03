@@ -21,7 +21,7 @@ fmt → lint → test → sonarcloud
 | **fmt** | Format check using `gofmt -s` | - |
 | **lint** | Static analysis with `go vet` and `golangci-lint` | fmt |
 | **test** | Unit tests with race detector + coverage | lint |
-| **sonarcloud** | Code quality & security analysis | test |
+| **sonarcloud** | Code quality & security analysis (push to master only) | test |
 | **build** | Build verification for all packages | test |
 | **ci-success** | Final status check | all |
 
@@ -33,8 +33,21 @@ fmt → lint → test → sonarcloud
 - ✅ Concurrency control (cancels in-progress runs)
 
 **Triggers:**
-- Push to `master`, `main`, `develop`
-- Pull requests to `master`, `main`, `develop`
+- Push to `master`, `main`
+- All pull requests targeting `master`, `main`
+
+**Required for PR Merge:**
+All stages must pass before a PR can be merged. Configure branch protection rules in GitHub:
+1. Go to **Settings → Branches → Branch protection rules**
+2. Add rule for `master`
+3. Enable **Require status checks to pass before merging**
+4. Select these required checks:
+   - `Format Check`
+   - `Lint`
+   - `Test & Coverage`
+   - `SonarCloud Analysis`
+   - `Build Verification`
+   - `CI Success`
 
 ---
 
@@ -113,7 +126,8 @@ Dependency vulnerability review.
 │                                    ▼                   ▼       │
 │                            ┌────────────┐      ┌───────────┐   │
 │                            │ SONARCLOUD │      │   BUILD   │   │
-│                            └────────────┘      └───────────┘   │
+│                            │ (push only)│      └───────────┘   │
+│                            └────────────┘              │       │
 │                                    │                   │       │
 │                                    └─────────┬─────────┘       │
 │                                              ▼                 │
@@ -124,6 +138,7 @@ Dependency vulnerability review.
 └─────────────────────────────────────────────────────────────────┘
 
 ❌ If any stage fails, the pipeline stops immediately (fail-fast)
+ℹ️ SonarCloud only runs on push to master/main (skipped for PRs)
 ```
 
 ---

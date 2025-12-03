@@ -128,7 +128,7 @@ func TestHandleGetOptions(t *testing.T) {
 
 // TestHandleMove - DISABLED due to SOAP namespace requirements.
 //
-//nolint:unused,thelper // Disabled test function kept for reference
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleMove(t *testing.T) {
 	t.Helper()
 	config := createTestConfig()

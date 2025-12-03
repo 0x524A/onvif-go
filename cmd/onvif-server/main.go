@@ -27,7 +27,6 @@ const (
 	ptzSpeed       = 0.5
 )
 
-//nolint:funlen // Main function has many statements due to server setup and configuration
 func main() {
 	// Define command-line flags
 	host := flag.String("host", "0.0.0.0", "Server host address")
@@ -39,7 +38,7 @@ func main() {
 	firmware := flag.String("firmware", "1.0.0", "Firmware version")
 	serial := flag.String("serial", "SN-12345678", "Serial number")
 	profiles := flag.Int(
-		"profiles", maxWorkers, "Number of camera profiles (1-10)", //nolint:mnd // Default profile count is reasonable
+		"profiles", maxWorkers, "Number of camera profiles (1-10)",
 	)
 	ptz := flag.Bool("ptz", true, "Enable PTZ support")
 	imaging := flag.Bool("imaging", true, "Enable Imaging support")
@@ -217,7 +216,7 @@ func buildConfig(host string, port int, username, password, manufacturer, model,
 						Token: fmt.Sprintf("preset_%d_1", i),
 						Name:  "Entrance",
 						Position: server.PTZPosition{
-							Pan: -45, Tilt: -10, Zoom: template.ptzZoomMax * ptzSpeed, //nolint:mnd // Preset position values
+							Pan: -45, Tilt: -10, Zoom: template.ptzZoomMax * ptzSpeed,
 						},
 					},
 				},

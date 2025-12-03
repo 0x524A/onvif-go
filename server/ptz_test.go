@@ -8,7 +8,7 @@ import (
 
 // These handlers are better tested through the SOAP handler in integration tests.
 //
-//nolint:unused,thelper // Disabled test function kept for reference
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleGetPresets(t *testing.T) {
 	t.Helper()
 	config := createTestConfig()
@@ -79,7 +79,7 @@ func TestHandleGotoPreset(t *testing.T) {
 
 // TestHandleGetStatus - DISABLED due to SOAP namespace requirements.
 //
-//nolint:unused,thelper // Disabled test function kept for reference
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleGetStatus(t *testing.T) {
 	t.Helper()
 	config := createTestConfig()
@@ -115,10 +115,9 @@ func _DisabledTestHandleGetStatus(t *testing.T) {
 	}
 }
 
-// TestHandleAbsoluteMove - DISABLED due to SOAP namespace requirements
+// TestHandleAbsoluteMove - DISABLED due to SOAP namespace requirements.
 //
-//nolint:dupl // Disabled test functions have similar structure
-//nolint:unused,thelper // Disabled test function kept for reference
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleAbsoluteMove(t *testing.T) {
 	t.Helper()
 	config := createTestConfig()
@@ -159,10 +158,9 @@ func _DisabledTestHandleAbsoluteMove(t *testing.T) {
 	}
 }
 
-// TestHandleRelativeMove - DISABLED due to SOAP namespace requirements
+// TestHandleRelativeMove - DISABLED due to SOAP namespace requirements.
 //
-//nolint:dupl // Disabled test functions have similar structure
-//nolint:unused,thelper // Disabled test function kept for reference
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleRelativeMove(t *testing.T) {
 	t.Helper()
 	config := createTestConfig()
@@ -203,10 +201,9 @@ func _DisabledTestHandleRelativeMove(t *testing.T) {
 	}
 }
 
-// TestHandleContinuousMove - DISABLED due to SOAP namespace requirements
+// TestHandleContinuousMove - DISABLED due to SOAP namespace requirements.
 //
-//nolint:dupl // Disabled test functions have similar structure
-//nolint:unused,thelper // Disabled test function kept for reference
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleContinuousMove(t *testing.T) {
 	t.Helper()
 	config := createTestConfig()
@@ -249,7 +246,7 @@ func _DisabledTestHandleContinuousMove(t *testing.T) {
 
 // TestHandleStop - DISABLED due to SOAP namespace requirements.
 //
-//nolint:unused,thelper // Disabled test function kept for reference
+//nolint:unused // Disabled test function kept for reference
 func _DisabledTestHandleStop(t *testing.T) {
 	t.Helper()
 	config := createTestConfig()

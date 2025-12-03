@@ -2491,8 +2491,6 @@ func (c *Client) GetAudioSourceConfigurations(ctx context.Context) ([]*AudioSour
 }
 
 // GetVideoEncoderConfigurations retrieves all video encoder configurations.
-//
-//nolint:funlen // GetVideoEncoderConfigurations has many statements due to parsing complex encoder configurations
 func (c *Client) GetVideoEncoderConfigurations(ctx context.Context) ([]*VideoEncoderConfiguration, error) {
 	endpoint := c.mediaEndpoint
 	if endpoint == "" {
