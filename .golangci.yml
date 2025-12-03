@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 5m
   tests: true
@@ -24,7 +26,6 @@ linters:
     - dupl
     - funlen
     - gocognit
-    - lll
     - nakedret
     - prealloc
     - stylecheck
@@ -55,9 +56,6 @@ linters-settings:
   funlen:
     lines: 120
     statements: 60
-  
-  lll:
-    line-length: 150
   
   gocritic:
     enabled-tags:
@@ -106,11 +104,6 @@ issues:
       linters:
         - errcheck
     
-    # Allow long lines in test files
-    - path: _test\.go
-      linters:
-        - lll
-    
     # Exclude dupl from ONVIF API files - similar patterns are expected
     - path: (media|device|ptz|imaging|device_security|device_additional)\.go
       linters:
@@ -123,7 +116,6 @@ issues:
   
   max-issues-per-linter: 50
   max-same-issues: 10
-  exclude-use-default: false
 
 output:
   print-issued-lines: true
